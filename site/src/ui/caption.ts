@@ -76,7 +76,7 @@ export function mountCaption(root: HTMLElement, turn: HTMLElement, status: HTMLE
     open.innerHTML = state.mode === "open" ? '<span class="caption__label">Eject the disk</span> <kbd aria-hidden="true">Esc</kbd>' : '<span class="caption__label">Read the disk</span> <kbd aria-hidden="true">↵</kbd>';
 
     const immediate = state.motion === "reduced" || state.renderer === "flat";
-    if (immediate || state.mode === "settled" || state.mode === "open") swap(state);
+    if (immediate || state.mode === "settled" || state.mode === "held" || state.mode === "open") swap(state);
     else if (state.current !== previous.current || state.selectionTick !== previous.selectionTick) {
       // The rack is moving: the old words fade out until the new case is out.
       if (shownName !== null) root.dataset.swap = "out";

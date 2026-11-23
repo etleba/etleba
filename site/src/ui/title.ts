@@ -23,10 +23,14 @@ export function titleBox(stage: HTMLElement): TitleBox {
   const w = field.clientWidth;
   const h = field.clientHeight;
   const narrow = w < 700;
+  const top = bar.getBoundingClientRect().bottom + margin * 0.5;
   return {
-    top: bar.getBoundingClientRect().bottom + margin * 0.5,
+    top,
     maxW: narrow ? w - margin * 2 : Math.min(w - margin * 2, w * 0.7),
-    maxH: h * (narrow ? 0.22 : 0.26),
+    // A bottom limit, not a height: the block ends 6 px above a quarter of the field, clear of the held disk's top
+    // (directing-cameras and animating-text, phase 6 v2: as a height from the field top it let a two-line name run
+    // up to 39 px under the disk at 1366 × 768; replayed over the 60 stress names the tightest gap is now 22 px).
+    maxH: narrow ? h * 0.22 : Math.max(0, h * 0.25 - 6 - (top - field.getBoundingClientRect().top)),
     narrow,
   };
 }

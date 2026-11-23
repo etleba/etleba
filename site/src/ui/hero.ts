@@ -23,6 +23,9 @@ export function mountHero(root: HTMLElement, stage: HTMLElement, store: Store): 
     if (mine !== token) return;
   }
 
+  // With the reader docked beside the box (wide screens), nothing covers the title while a disk is read, so it stays.
+  const docked = matchMedia("(min-width: 1024px)");
+
   async function show(state: State): Promise<void> {
     const entry = state.current >= 0 ? state.visible[state.current] : null;
     if (!entry) return;
@@ -31,7 +34,7 @@ export function mountHero(root: HTMLElement, stage: HTMLElement, store: Store): 
     root.dataset.state = "off";
     await layout(entry, state.current, state.visible.length);
     // Still the one to show once its title has been set?
-    if (shown !== entry.name || store.state.mode !== "settled") return;
+    if (shown !== entry.name || (store.state.mode !== "settled" && store.state.mode !== "held" && !(store.state.mode === "open" && docked.matches))) return;
     // Under the boot screen the title is placed already open: the boot's own title lands on it.
     if (document.body.dataset.boot) {
       root.dataset.state = "shown";
@@ -47,8 +50,7 @@ export function mountHero(root: HTMLElement, stage: HTMLElement, store: Store): 
   }
 
   store.on((state) => {
-    // While a disk is open the sheet carries the title.
-    if (state.mode === "settled") void show(state);
+    if (state.mode === "settled" || state.mode === "held" || (state.mode === "open" && docked.matches)) void show(state);
     else cut();
   });
 

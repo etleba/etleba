@@ -1,10 +1,11 @@
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import type { Entry } from "./catalogue";
-import { DISK, SHUTTER_SLIDE, applyEnvironment, buildBox, buildDisk, type Disk, setWriteProtect } from "./floppy";
-import { FRONT_CLEAR, STIFFNESS, TURN_BLOCK, gateCase } from "./gates";
+import { BOX, DISK, LOOK, SHUTTER_SLIDE, applyEnvironment, buildBox, buildDisk, type Disk, setWriteProtect } from "./floppy";
+import { FRONT_CLEAR, OPEN_AT_MOUTH, PHRASE_TEMPO, TURN_BLOCK, gateCase, setTempo } from "./gates";
 import { labelCanvas } from "./labels";
 import { Spring, clamp, easeOutCubic, smoothstep } from "./motion";
+import { hashSeed, rng } from "./random";
 import { sound } from "./sound";
 import type { State, Store } from "./state";
 import { tokens } from "./tokens";
@@ -40,6 +41,21 @@ const LEAN_B = 0.16; // still to come: leaning back
 const PULL_LIFT = 0.98 * DISK.H;
 const SINK = DISK.H + 0.12;
 const FRONT_WINDOW = 16;
+/**
+ * The two-stage insert (review notes: "when it clicks in it then slides in a bit slower"): the disk
+ * comes to the slot's mouth with 30% of it inside, the latch catches it and holds it for LATCH_HOLD,
+ * then the drive draws it the rest of the way. MOUTH is how far short of seated the mouth is.
+ */
+const MOUTH = 0.7 * DISK.H + 0.12;
+const LATCH_HOLD = 0.16;
+/** The rotation follower (timing-and-easing spring_response.py, turn-follower: 3.8% overshoot, settles in 1.08 s);
+ *  going home it tracks tightly, so a disk is square to its slot before it drops. */
+const FOLLOW = { out: { k: 45, ratio: 0.72 }, back: { k: 400, ratio: 1 } };
+/** The box is one size (the polish pass): it holds FRONT_VIS slots in front of the gap and BACK_VIS behind it, and
+ *  stands still while the disks glide through it. Disks past either end lie down out of sight. */
+const FRONT_VIS = 10;
+const BACK_VIS = 12;
+const BOX_MARGIN = 0.07;
 const BACK_WINDOW = 26;
 const RACK_TONE = 0.62;
 const HERO_KEEP = 6;
@@ -64,6 +80,8 @@ interface DiskNode {
   lean: Spring;
   peek: Spring;
   shutterPeek: Spring;
+  /** Mass in the hand: a small dip and settle when the disk lands square, or pops back out of the drive. */
+  land: Spring;
   wp: Spring;
   liftDelay: number;
   rackTex: THREE.CanvasTexture | null;
@@ -74,6 +92,18 @@ interface DiskNode {
   side: number;
   /** Was out of the box (for the drop sound). */
   wasOut: boolean;
+  /** Had arrived square in the hand (for the landing). */
+  wasPresented: boolean;
+  /** Had been in the drive (for the pop on eject). */
+  wasRead: boolean;
+  /** Into the drive after the latch: 0 at the slot's mouth, 1 seated (the drive draws it in; it pushes it out). */
+  seat: Spring;
+  /** The turn's rotation, lagging the carry as an attached follower, and settling into the hand. */
+  follow: Spring;
+  /** How long the disk has sat latched at the slot's mouth (s): the catch holds before the drive draws it in. */
+  latchT: number;
+  /** Seeded phases (0..1) for the held disk's life in the air: roll, yaw, drift. */
+  air: [number, number, number];
 }
 
 export interface StageHandle {
@@ -102,12 +132,35 @@ export function createStage(canvas: HTMLCanvasElement, field: HTMLElement, store
   }
   const small = Math.min(innerWidth, innerHeight) < 700;
   const params = new URLSearchParams(location.search);
+  // Lookdev wedges (review builds only): ?review=1&look.plasticRoughness=0.6&look.shadow=0.3 ...
+  const ROOM = { shadow: 0.22, screenLight: 120, keyWarm: 0.04, keyHeight: 14, shift: 0.18, sway: 1 };
+  if (params.has("review")) {
+    for (const [k, v] of params) {
+      if (!k.startsWith("look.")) continue;
+      const name = k.slice(5);
+      const n = Number(v);
+      if (!Number.isFinite(n)) continue;
+      if (name in LOOK) (LOOK as Record<string, number>)[name] = n;
+      if (name in ROOM) (ROOM as Record<string, number>)[name] = n;
+    }
+  }
+  // The disk phrase's tempo (gates.ts PHRASE_TEMPO); review builds may override it: ?review=1&motion.tempo=1.
+  let motionTempo = PHRASE_TEMPO;
+  if (params.has("review") && params.has("motion.tempo")) {
+    const tempoParam = Number(params.get("motion.tempo"));
+    if (Number.isFinite(tempoParam) && tempoParam > 0.2 && tempoParam < 5) {
+      motionTempo = tempoParam;
+      setTempo(tempoParam);
+    }
+  }
   let quality: "high" | "low" = params.get("quality") === "low" ? "low" : "high";
   renderer.setPixelRatio(quality === "low" ? 1 : Math.min(devicePixelRatio || 1, small ? 1.5 : 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.NeutralToneMapping;
   renderer.shadowMap.enabled = quality === "high";
   renderer.shadowMap.type = THREE.PCFShadowMap;
+  renderer.shadowMap.autoUpdate = false;
+  let shadowsDirty = true;
   renderer.setClearColor(0x000000, 0);
 
   const scene = new THREE.Scene();
@@ -126,8 +179,9 @@ export function createStage(canvas: HTMLCanvasElement, field: HTMLElement, store
   // behind that draws the disks' edges against the paper; and an even, bright fill, because the
   // room around the box is paper. The metal shutters catch the key and the rim.
   const page = new THREE.Color(tokens().page);
-  const key = new THREE.DirectionalLight(0xffffff, 2.8);
-  key.position.set(-5.5, 6.5, 1.6);
+  // The key: a little warmer than white (ROOM.keyWarm mixes towards a lamp's tungsten), still high on the left.
+  const key = new THREE.DirectionalLight(new THREE.Color(0xffffff).lerp(new THREE.Color(0xffd9a8), ROOM.keyWarm), 2.8);
+  key.position.set(-5.5, ROOM.keyHeight, 1.6);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
   key.shadow.camera.near = 1;
@@ -138,7 +192,7 @@ export function createStage(canvas: HTMLCanvasElement, field: HTMLElement, store
   key.shadow.camera.bottom = -2.4;
   key.shadow.bias = -0.0004;
   key.shadow.normalBias = 0.01;
-  key.shadow.radius = 4;
+  key.shadow.radius = 8;
   scene.add(key, key.target);
   const rim = new THREE.DirectionalLight(0xffffff, 1.2);
   rim.position.set(2.5, 2.4, -6);
@@ -150,14 +204,36 @@ export function createStage(canvas: HTMLCanvasElement, field: HTMLElement, store
   boxSpot.target.position.set(0, 0.35, -0.25);
   scene.add(boxSpot, boxSpot.target);
 
-  // No pool of light on the floor: the page is paper, and chrome and field carry no glow.
-  const box = buildBox();
+  // The page is a desk: a shadow-only ground under the box, so it sits on the paper (the polish pass).
+  const desk = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.ShadowMaterial({ opacity: ROOM.shadow }));
+  desk.rotation.x = -Math.PI / 2;
+  desk.position.y = -0.02;
+  desk.receiveShadow = true;
+  desk.visible = ROOM.shadow > 0;
+  scene.add(desk);
+
+  // The reader's screen is a light: off at rest, and lit while a disk is read (src/ui/reader.ts).
+  const screenLight = new THREE.PointLight(0xfff4e2, 0, 0, 2);
+  scene.add(screenLight);
+  let screenLevel = 0;
+  let screenTarget = 0;
+  addEventListener("drive", (e) => {
+    screenTarget = (e as CustomEvent).detail === "reading" ? 1 : 0;
+    dirty = true;
+  });
+
+  // The front wall stands just clear of the flipped disks: the frontmost one leans forward over the wall's top
+  // edge instead of through it (the polish pass, "is the box invisible at the front?").
+  const boxFront = (FRONT_VIS - 1) * GAP + BOX.H * 0.9 * Math.tan(LEAN_F) + 0.03;
+  const box = buildBox(boxFront, -(BACK_VIS * GAP + BOX_MARGIN));
   scene.add(box.group);
 
   // Fog is the page's own colour, so the far disks fade into the paper. (three.js applies fog after tone
   // mapping, so the token colour lands on the page exactly: recipe/studies/fog-check.html samples it.)
   const fog = new THREE.Fog(page, 6, 12);
   scene.fog = fog;
+  let fogNear = 6;
+  let fogFar = 12;
 
   const nodes = new Map<string, DiskNode>();
   let order: Entry[] = [];
@@ -181,7 +257,7 @@ export function createStage(canvas: HTMLCanvasElement, field: HTMLElement, store
   let reflow: null | { phase: "sink" | "rise"; slots: Map<DiskNode, number> } = null;
   let dragging: null | { kind: "box" | "inspect"; startX: number; startY: number; startPos: number; startYaw: number; startPitch: number; lastT: number; velocity: number; axis: "x" | "y" | null; moved: boolean; pointerId: number } = null;
   const heroCache = new Map<string, THREE.CanvasTexture>();
-  let drive: "empty" | "inserting" | "reading" | "ejecting" = "empty";
+  let drive: "empty" | "inserting" | "latched" | "seating" | "reading" | "ejecting" = "empty";
   document.body.dataset.drive = drive;
 
   function setDrive(next: typeof drive): void {
@@ -194,17 +270,27 @@ export function createStage(canvas: HTMLCanvasElement, field: HTMLElement, store
   // ---------- disks ----------
   function buildNode(entry: Entry): DiskNode {
     const disk = buildDisk();
+    const vary = rng(hashSeed(`motion:${entry.name}`));
     const node: DiskNode = {
       entry,
       disk,
       slot: 0,
       alive: true,
-      pull: new Spring(0, { stiffness: 200, ratio: 1 }),
-      turn: new Spring(0, { stiffness: 150, ratio: 1 }),
-      open: new Spring(0, { stiffness: STIFFNESS.open.out, ratio: 1 }),
+      // Tuned every frame by the gates (src/gates.ts STIFFNESS), out and back.
+      pull: new Spring(0, { stiffness: 160, ratio: 1 }),
+      turn: new Spring(0, { stiffness: 80, ratio: 1 }),
+      open: new Spring(0, { stiffness: 90, ratio: 1 }),
+      seat: new Spring(0, { stiffness: 22, ratio: 1 }),
+      follow: new Spring(0, { stiffness: FOLLOW.out.k, ratio: FOLLOW.out.ratio }),
+      latchT: 0,
+      air: [vary(), vary(), vary()],
       lift: new Spring(0, { stiffness: 170, ratio: 1 }),
-      lean: new Spring(-LEAN_B, { stiffness: 320, ratio: 0.55 }),
-      peek: new Spring(0, { stiffness: 260, ratio: 0.7 }),
+      // Varied motion (the polish pass): each disk's lean and lift vary a little, seeded by its name, so the
+      // stack never moves in lockstep. Ranges: lean stiffness 272 to 368, ratio 0.50 to 0.62; lift 234 to 286.
+      lean: new Spring(-LEAN_B, { stiffness: 320 * (0.85 + 0.3 * vary()), ratio: 0.5 + 0.12 * vary() }),
+      peek: new Spring(0, { stiffness: 260 * (0.9 + 0.2 * vary()), ratio: 0.7 }),
+      // land-b in .motion/06-specialists/timing-and-easing: k 200, zeta 0.5; dips 3.5 mm, settles in 0.56 s.
+      land: new Spring(0, { stiffness: 200, ratio: 0.5 }),
       shutterPeek: new Spring(0, { stiffness: 300, ratio: 0.6 }),
       wp: new Spring(0, { stiffness: 400, ratio: 0.7 }),
       liftDelay: 0,
@@ -214,6 +300,8 @@ export function createStage(canvas: HTMLCanvasElement, field: HTMLElement, store
       tone: 1,
       side: 0,
       wasOut: false,
+      wasPresented: false,
+      wasRead: false,
     };
     disk.group.traverse((o) => (o.userData.node = node));
     disk.writeProtect.userData.part = "wp";
@@ -281,7 +369,6 @@ export function createStage(canvas: HTMLCanvasElement, field: HTMLElement, store
   function syncCatalogue(state: State): void {
     const firstLoad = nodes.size === 0;
     order = state.visible;
-    box.fit(order.length, GAP);
     const front = Math.max(0, state.current);
     const slots = new Map<DiskNode, number>();
     const alive = new Set<string>();
@@ -379,10 +466,17 @@ export function createStage(canvas: HTMLCanvasElement, field: HTMLElement, store
     // the top of the stage; the presented disk, about two fifths of the stage tall, floats just
     // below the middle; the box sits at the foot, its current disk a fifth of the stage tall,
     // seen from above at about thirty-five degrees, so the label tops show over the disks in front.
-    const boxShare = layout.wide ? 0.23 : 0.2;
-    const presentShare = layout.wide ? 0.37 : 0.34;
-    const boxAt = layout.wide ? 0.82 : 0.85;
-    const presentAt = layout.wide ? 0.52 : 0.55;
+        // Re-chosen for the one-size box (.motion/04-lookdev/framing, candidate G2, after the front wall moved clear of the leaning disks): the largest box that keeps
+    // clear of the disk in the hand and the title at every size from 1366x768 to 2560x1440.
+    const boxShare = layout.wide ? 0.24 : 0.2;
+    const presentShare = layout.wide ? 0.3 : 0.34;
+    const boxAt = layout.wide ? 0.7 : 0.85;
+    const presentAt = layout.wide ? 0.41 : 0.55;
+    // Wide: shift the picture right within the field with a lens shift (no parallax), so the box and the disk
+    // sit clear of the caption on the left and the neighbours on the right (ndc shift; 0 on narrow screens).
+    const shift = layout.wide ? ROOM.shift : 0;
+    camera.filmGauge = 35;
+    camera.filmOffset = -shift * halfV * Math.max(1, camera.aspect) * 35;
     const elevation = 0.62;
     const dBox = DISK.H / (2 * halfV * boxShare);
     const target = tmp.set(0, DISK.H * 0.55, 0);
@@ -400,34 +494,61 @@ export function createStage(canvas: HTMLCanvasElement, field: HTMLElement, store
     layout.face.setFromAxisAngle(X, -rayPitch);
     // The drive: the open sheet's left edge, at the presented disk's height and depth. The disk
     // turns on its side, so half its height runs ahead of its centre.
-    const spreadPx = Math.min(760, innerWidth * 0.54);
     const rect = field.getBoundingClientRect();
+    // The drive is the reader's slot (src/ui/reader.ts): the disk goes in at its centre line.
+    const slot = document.querySelector<HTMLElement>("[data-reader-slot]");
+    const slotRect = slot?.getBoundingClientRect();
     if (layout.wide) {
-      const edgePx = innerWidth - spreadPx - rect.left;
+      const edgePx = slotRect && slotRect.width > 0 ? slotRect.left + slotRect.width / 2 - rect.left : w;
       const ndcX = (edgePx / w) * 2 - 1;
       const halfH = halfV * camera.aspect;
       layout.drive.copy(layout.present);
-      layout.drive.x = ndcX * halfH * dPresent + DISK.H / 2 + 0.12;
+      layout.drive.x = (ndcX - shift) * halfH * dPresent + DISK.H / 2 + 0.12;
     } else {
       layout.drive.copy(layout.present);
       layout.drive.x = halfV * camera.aspect * dPresent + DISK.H;
     }
+    // The screen's light stands just past the slot, a little in front, at the disk's height.
+    screenLight.position.set(layout.drive.x + 1.2, layout.present.y, layout.present.z + 0.6);
     // Where the slot is drawn on the sheet, in page pixels.
     const root = document.documentElement.style;
     root.setProperty("--drive-y", `${(rect.top + presentAt * h).toFixed(1)}px`);
     root.setProperty("--drive-h", `${((DISK.W / (2 * halfV * dPresent)) * h).toFixed(1)}px`);
     layout.pxPerSlot = layout.wide ? 34 : 26;
-    fog.near = dBox - 1.2;
-    fog.far = dBox + 3.2;
+    fogNear = dBox - 1.2;
+    fogFar = dBox + 3.2;
+    fog.near = fogNear;
+    fog.far = fogFar;
     camera.updateProjectionMatrix();
     placeCamera(1);
     dirty = true;
   }
 
+  // The camera breathes (your note: "some camera sway"): two slow sines on yaw and pitch at periods that never
+  // line up (8.3 s and 12.1 s, seam-checked with motion_builder.py loop), at full strength at rest, damped while
+  // a disk is read, off for reduced motion. It turns in place; it never travels or reframes.
+  const SWAY = { yaw: 0.12, pitch: 0.07, yawPeriod: 8.3, pitchPeriod: 12.1 };
+  // The held disk's life in the air (built and closure-checked with motion_builder.py loop,
+  // .motion/05-experiment/loops/held-*.json): roll ±0.7° over 6.1 s, yaw ±1.0° over 9.4 s, drift ±3 mm over 7.3 s,
+  // and the breath (±5 mm over 4.2 s). The periods never line up, and each disk's phases are seeded by its name.
+  // Comes in and goes with airLevel (critical, k 6): only while held, never for reduced motion.
+  const AIR = { roll: 0.7, rollPeriod: 6.1, yaw: 1.0, yawPeriod: 9.4, drift: 0.003, driftPeriod: 7.3, breath: 0.005, breathPeriod: 4.2 };
+  const airLevel = new Spring(0, { stiffness: 6, ratio: 1 });
+  const swayLevel = new Spring(1, { stiffness: 6, ratio: 1 });
+  let swayT = 0;
+  let breathT = 0;
+
   function placeCamera(arrival: number): void {
     const a = 1 - arrival;
     camera.position.set(camBase.x, camBase.y + a * 0.9, camBase.z + a * 1.6);
-    camera.lookAt(tmp.copy(camera.position).add(lookDir));
+    // The fog travels with the camera's arrival, so the box never shows as a grey ghost while the camera settles.
+    fog.near = fogNear + a * 1.85;
+    fog.far = fogFar + a * 1.85;
+    const k = swayLevel.x * ROOM.sway * (Math.PI / 180);
+    const yaw = k * SWAY.yaw * Math.sin((2 * Math.PI * swayT) / SWAY.yawPeriod);
+    const pitch = k * SWAY.pitch * Math.sin((2 * Math.PI * swayT) / SWAY.pitchPeriod + 1.1);
+    tmp2.set(lookDir.x + yaw, lookDir.y + pitch, lookDir.z);
+    camera.lookAt(tmp.copy(camera.position).add(tmp2));
     camera.updateMatrixWorld();
   }
 
@@ -449,6 +570,8 @@ export function createStage(canvas: HTMLCanvasElement, field: HTMLElement, store
     g.visible = (out || (d > -FRONT_WINDOW && d < BACK_WINDOW)) && node.lift.x > 0.001;
     if (!g.visible) return;
     // In the box: the foot on the floor at its slot, the disk raised along its own plane.
+    // Past either end of the one-size box the disk fades out (or in), over one slot; it never passes through the box.
+    const past = Math.max(smoothstep(-d - (FRONT_VIS - 1)), smoothstep(d - (BACK_VIS - 1)));
     const lean = node.lean.x;
     const along = DISK.H / 2 + node.pull.x * PULL_LIFT + node.peek.x * 0.07;
     boxPos.set(0, Math.cos(lean) * along, -d * GAP + Math.sin(lean) * along);
@@ -457,10 +580,13 @@ export function createStage(canvas: HTMLCanvasElement, field: HTMLElement, store
     // its slot (the gate lets it drop only then).
     const t = node.turn.x;
     const travel = smoothstep(clamp((t - 0.1) / 0.9, 0, 1));
-    const square = smoothstep(t);
+    // The rotation lags the carry a little and settles into the hand (an attached follower, not the carry itself).
+    const square = clamp(node.follow.x, 0, 1.06);
     const o = node.open.x;
-    const roll = smoothstep(clamp((o - 0.25) / 0.3, 0, 1));
-    const insert = smoothstep(clamp((o - 0.5) / 0.5, 0, 1));
+    // To the mouth: the disk rolls onto its side, then travels; the seat then draws it from the mouth into the drive.
+    const roll = smoothstep(clamp((o - 0.05) / 0.65, 0, 1));
+    const approach = smoothstep(clamp((o - 0.3) / 0.7, 0, 1));
+    const seat = clamp(node.seat.x, -0.3, 1);
     const inspect = isPresented ? 1 - smoothstep(o / 0.3) : 0;
     qB.copy(layout.face);
     qC.setFromAxisAngle(Y, (inspectYaw.x + lookYaw.x) * inspect);
@@ -469,12 +595,39 @@ export function createStage(canvas: HTMLCanvasElement, field: HTMLElement, store
     qB.multiply(qC);
     qC.setFromAxisAngle(Z, (-Math.PI / 2) * roll);
     qB.multiply(qC);
+    // Life in the air while held: a slow roll and yaw, never in step (AIR).
+    const air = isPresented ? airLevel.x * inspect : 0;
+    if (air > 0.0005) {
+      const deg = Math.PI / 180;
+      qC.setFromAxisAngle(Z, Math.sin(2 * Math.PI * (breathT / AIR.rollPeriod + node.air[0])) * AIR.roll * deg * air);
+      qB.multiply(qC);
+      qC.setFromAxisAngle(Y, Math.sin(2 * Math.PI * (breathT / AIR.yawPeriod + node.air[1])) * AIR.yaw * deg * air);
+      qB.multiply(qC);
+    }
     g.quaternion.slerpQuaternions(qA, qB, square);
+    // Mass: the landing dips and nods the disk in the hand, then settles.
+    if (node.land.x !== 0) {
+      qC.setFromAxisAngle(X, node.land.x * 1.2);
+      g.quaternion.multiply(qC);
+    }
     g.position.lerpVectors(boxPos, layout.present, travel);
-    g.position.y += Math.sin(Math.PI * travel) * 0.14;
-    if (insert > 0) g.position.lerp(tmp.copy(layout.drive), insert);
+    g.position.y += Math.sin(Math.PI * travel) * 0.14 + node.land.x * square;
+    // A held disk breathes very slightly, as a hand would hold it; not while it is read, and not for reduced motion.
+    if (air > 0.0005) {
+      g.position.y += Math.sin((2 * Math.PI * breathT) / AIR.breathPeriod) * AIR.breath * air;
+      g.position.x += Math.sin(2 * Math.PI * (breathT / AIR.driftPeriod + node.air[2])) * AIR.drift * air;
+    }
+    if (approach > 0 || seat !== 0) {
+      tmp.copy(layout.drive);
+      tmp.x -= MOUTH;
+      g.position.lerp(tmp, approach);
+      if (seat !== 0) g.position.x += MOUTH * seat;
+    }
     // Sinking clears the floor from wherever the disk is.
     const lift = easeOutCubic(node.lift.x);
+    // Entering, leaving or re-sorting, a disk fades rather than showing itself through the floor.
+    node.disk.fade(out ? 1 : Math.min(1 - past, lift));
+    if (past > 0.999 && !out) g.visible = false;
     g.position.y -= (SINK + Math.max(0, g.position.y - DISK.H / 2)) * (1 - lift);
     // Shutter: slides fully as the disk opens, and part way under the pointer.
     node.disk.shutter.position.x = SHUTTER_SLIDE * Math.max(smoothstep(o / 0.3), node.shutterPeek.x * 0.32);
@@ -511,8 +664,18 @@ export function createStage(canvas: HTMLCanvasElement, field: HTMLElement, store
 
   let wheelAccum = 0;
   let wheelTimer = 0;
+  /** The README's scroller on the reader's screen. */
+  const readerSheet = document.querySelector<HTMLElement>("[data-booklet-sheet]");
+
   function onWheel(e: WheelEvent): void {
     if (store.state.mode === "loading" || store.state.mode === "failed") return;
+    // While a disk is read, the wheel belongs to the screen, wherever the pointer is (.motion/02-arc/sheet-behaviour.md).
+    if (store.state.mode === "open" && readerSheet) {
+      e.preventDefault();
+      const unit = e.deltaMode === 1 ? 40 : e.deltaMode === 2 ? readerSheet.clientHeight : 1;
+      readerSheet.scrollBy({ top: e.deltaY * unit, left: 0 });
+      return;
+    }
     const horizontal = Math.abs(e.deltaX) > Math.abs(e.deltaY);
     // On narrow layouts the page scrolls vertically; only horizontal wheels flip there.
     if (!layout.wide && !horizontal) return;
@@ -533,7 +696,7 @@ export function createStage(canvas: HTMLCanvasElement, field: HTMLElement, store
     if (e.button !== 0 && e.pointerType === "mouse") return;
     if (store.state.mode === "loading" || store.state.mode === "failed") return;
     const h = hit(e.clientX, e.clientY);
-    const inspecting = h !== null && h.node === presented() && store.state.mode === "settled";
+    const inspecting = h !== null && h.node === presented() && store.state.mode === "held";
     dragging = {
       kind: inspecting ? "inspect" : "box",
       startX: e.clientX,
@@ -637,9 +800,11 @@ export function createStage(canvas: HTMLCanvasElement, field: HTMLElement, store
             h.node.wp.target = h.node.wp.target > 0.5 ? 0 : 1;
             sound.click();
           } else inspectYaw.target += Math.PI;
-        } else if (store.state.mode === "settled") store.open();
+        } else if (store.state.mode === "held") store.open();
       } else if (h.node === currentNode) {
-        if (store.state.mode === "settled" || store.state.mode === "browsing") store.open();
+        // In the box: a click takes it out. Already on its way out: a second click carries on into the reader.
+        if (store.state.mode === "settled" || store.state.mode === "browsing") store.take();
+        else if (store.state.mode === "held") store.open();
       } else {
         const idx = order.indexOf(h.node.entry);
         if (idx >= 0) store.select(idx, "drag");
@@ -689,6 +854,21 @@ export function createStage(canvas: HTMLCanvasElement, field: HTMLElement, store
     const mode = store.state.mode;
     if (mode === "loading" || mode === "failed") return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
+    // While a disk is read, the reading keys scroll the screen instead of flipping the box (state-proposed.json).
+    if (mode === "open" && readerSheet) {
+      const page = readerSheet.clientHeight * 0.9;
+      const by: Record<string, number> = { ArrowDown: 48, ArrowUp: -48, PageDown: page, PageUp: -page, " ": e.shiftKey ? -page : page };
+      if (e.key in by) {
+        e.preventDefault();
+        readerSheet.scrollBy({ top: by[e.key], behavior: reduced ? "auto" : "smooth" });
+        return;
+      }
+      if (e.key === "Home" || e.key === "End") {
+        e.preventDefault();
+        readerSheet.scrollTo({ top: e.key === "Home" ? 0 : readerSheet.scrollHeight, behavior: "auto" });
+        return;
+      }
+    }
     switch (e.key) {
       case "ArrowRight":
         e.preventDefault();
@@ -721,18 +901,23 @@ export function createStage(canvas: HTMLCanvasElement, field: HTMLElement, store
       case " ":
         if (t && (t.tagName === "BUTTON" || t.tagName === "A")) return;
         e.preventDefault();
-        if (mode === "settled" || mode === "browsing") store.open();
+        // Enter takes the disk out; again puts it in the reader.
+        if (mode === "settled" || mode === "browsing") store.take();
+        else if (mode === "held") store.open();
         return;
       case "Escape":
         if (mode === "open") {
           e.preventDefault();
           store.close();
+        } else if (mode === "held") {
+          e.preventDefault();
+          store.put();
         }
         return;
       case "f":
       case "F":
         // Turn the presented disk over.
-        if (presented() && mode === "settled") {
+        if (presented() && mode === "held") {
           e.preventDefault();
           inspectYaw.target += Math.PI;
           dirty = true;
@@ -774,7 +959,7 @@ export function createStage(canvas: HTMLCanvasElement, field: HTMLElement, store
       }
     }
     if (state.mode !== previous.mode) {
-      if ((state.mode === "settled" || state.mode === "open") && currentNode) void paintHero(currentNode);
+      if ((state.mode === "held" || state.mode === "open") && currentNode) void paintHero(currentNode);
       // Opening from the back turns the disk face up first.
       if (state.mode === "open") inspectYaw.target = Math.round(inspectYaw.target / (2 * Math.PI)) * 2 * Math.PI;
       if (state.mode === "open" || state.mode === "browsing") setHover(null, null, 0, 0);
@@ -784,7 +969,7 @@ export function createStage(canvas: HTMLCanvasElement, field: HTMLElement, store
 
   // ---------- gates ----------
   function gate(node: DiskNode, mode: State["mode"]): void {
-    const out = node === currentNode && node.alive && !reflow && !held && node.lift.x > 0.98 && (mode === "settled" || mode === "open");
+    const out = node === currentNode && node.alive && !reflow && !held && node.lift.x > 0.98 && (mode === "held" || mode === "open");
     let anotherTurned = false;
     let anotherForward = false;
     if (out && node.turn.target < 1)
@@ -793,7 +978,7 @@ export function createStage(canvas: HTMLCanvasElement, field: HTMLElement, store
         if (other.turn.x > TURN_BLOCK) anotherTurned = true;
         if (other.turn.x > FRONT_CLEAR) anotherForward = true;
       }
-    gateCase(node, out, mode === "open", anotherTurned, anotherForward);
+    gateCase(node, out, mode === "open", anotherTurned, anotherForward, reduced || node.latchT >= LATCH_HOLD * motionTempo);
   }
 
   // ---------- frame loop ----------
@@ -881,7 +1066,7 @@ export function createStage(canvas: HTMLCanvasElement, field: HTMLElement, store
       }
       for (let pass = 0; pass < (reduced ? 4 : 1); pass++) {
         gate(n, state.mode);
-        if (reduced) for (const s of [n.pull, n.turn, n.open, n.lift]) s.snap();
+        if (reduced) for (const s of [n.pull, n.turn, n.open, n.seat, n.lift]) s.snap();
       }
       // The flip: lean follows the gap, and stops hard against the neighbours with a small bounce.
       const d = n.slot - pos.x;
@@ -902,40 +1087,118 @@ export function createStage(canvas: HTMLCanvasElement, field: HTMLElement, store
       if (n.side !== 0 && side !== n.side && n.alive && n.disk.group.visible && n.pull.x < 0.05) sound.tick();
       n.side = side;
       n.peek.target = n === hovered && n.pull.x < 0.02 && !dragging ? 1 : 0;
-      n.shutterPeek.target = n === pres && hoverPart === "shutter" && hovered === n && state.mode === "settled" ? 1 : 0;
-      for (const s of [n.pull, n.turn, n.open, n.lift, n.peek, n.shutterPeek, n.wp]) moving = step(s, dt) || moving;
+      n.shutterPeek.target = n === pres && hoverPart === "shutter" && hovered === n && state.mode === "held" ? 1 : 0;
+      for (const s of [n.pull, n.turn, n.open, n.seat, n.lift, n.peek, n.shutterPeek, n.wp, n.land]) moving = step(s, dt) || moving;
+      // The rotation follows the carry (out: lagging, settling into the hand; home: tight, square before the drop).
+      const f = n.turn.target === 1 ? FOLLOW.out : FOLLOW.back;
+      n.follow.tune(f.k / (motionTempo * motionTempo), f.ratio);
+      n.follow.target = smoothstep(n.turn.x);
+      if (reduced) n.follow.snap();
+      else moving = step(n.follow, dt) || moving;
+      // The latch: how long the disk has sat at the slot's mouth on its way in.
+      // Counts only while the disk is wanted in the drive, so a re-insert after an eject clicks and holds again.
+      n.latchT = n === currentNode && state.mode === "open" && n.open.target === 1 && n.open.x > OPEN_AT_MOUTH ? n.latchT + dt : 0;
+      // Mass: the disk lands square in the hand with a small dip, and pops back out of the drive the same way.
+      if (!reduced) {
+        if (n.turn.target === 1 && n.turn.x > 0.85 && !n.wasPresented) {
+          n.wasPresented = true;
+          n.land.v -= 0.9;
+        } else if (n.turn.x < 0.5) n.wasPresented = false;
+        if (n.seat.x > 0.9) n.wasRead = true;
+        else if (n.wasRead && n.open.x < 0.15) {
+          n.wasRead = false;
+          n.land.v -= 0.7;
+        }
+      }
       // Sounds at the moments that matter.
-      if (n.pull.x > 0.5 && !n.wasOut) {
+      // The lift's scrape starts with the grip, on the frame the disk is taken (interaction group: acknowledge the press).
+      if (n.pull.target === 1 && n.pull.x < 0.5 && !n.wasOut) {
         n.wasOut = true;
         sound.lift();
-      } else if (n.pull.x < 0.04 && n.wasOut) {
+      } else if (n.pull.target === 0 && n.pull.x < 0.04 && n.wasOut) {
+        // Only once it is really going home: the gripped lift stays under 0.04 for its first frames (interaction N1).
         n.wasOut = false;
         sound.drop();
+        // The neighbours take the dropped disk's weight: a small bump to each side (attached response).
+        if (!reduced)
+          for (const k of [-1, 1]) {
+            const e = order[n.slot + k];
+            const nb = e ? nodes.get(e.name) : undefined;
+            if (nb && nb.alive) nb.lean.v += 0.5 * (k < 0 ? 1 : -1);
+          }
       }
     }
 
-    // The drive, from the current disk's open spring.
+    // The drive, from the current disk's open and seat springs: to the mouth, the latch catches it (a click and the
+    // light), the drive draws it in, it seats (the hub's clunk, then the head reading). Each cue fires in the frame its
+    // motion reaches the event.
     const cur = currentNode;
-    if (cur && cur.open.target > 0.5) {
-      if (cur.open.x > 0.97 && drive !== "reading") {
-        setDrive("reading");
-        sound.insert();
-        sound.seek();
-      } else if (cur.open.x > 0.04 && drive === "empty") {
+    if (cur && state.mode === "open") {
+      if (cur.seat.x > 0.97) {
+        if (drive !== "reading") {
+          setDrive("reading");
+          sound.seated();
+          sound.seek();
+        }
+      } else if (cur.seat.target === 1) {
+        if (drive !== "seating") {
+          setDrive("seating");
+          sound.slide(1.3 * motionTempo);
+        }
+      } else if (cur.open.x > OPEN_AT_MOUTH) {
+        if (drive !== "latched") {
+          setDrive("latched");
+          sound.latch();
+          // The catch: a small recoil against the latch before the drive takes it.
+          if (!reduced) cur.seat.v -= 0.5;
+        }
+      } else if (cur.open.target === 1 && (drive === "empty" || drive === "ejecting")) {
+        // Sounds as the disk starts for the slot: on the press when it is already in the hand, or once it reaches the
+        // hand when Enter came while it was still being taken out (interaction N2).
+        // The press is answered at once: the shutter's sound starts with it, its snap lands as the shutter opens (open 0.3).
         setDrive("inserting");
-        sound.shutter();
+        sound.shutter(0.3 * motionTempo);
       }
-    } else if (drive === "reading" || drive === "inserting") {
+    } else if (drive === "latched" || drive === "seating" || drive === "reading") {
       setDrive("ejecting");
       sound.eject();
+    } else if (drive === "inserting") {
+      setDrive("ejecting");
     } else if (drive === "ejecting") {
       let anyOpen = 0;
-      for (const n of nodes.values()) anyOpen = Math.max(anyOpen, n.open.x);
+      for (const n of nodes.values()) anyOpen = Math.max(anyOpen, n.open.x, n.seat.x);
       if (anyOpen < 0.03) setDrive("empty");
     }
 
+    // The held disk's life in the air comes in once it is in the hand and goes when it leaves.
+    airLevel.target = !reduced && state.mode === "held" && presented() ? 1 : 0;
+    if (reduced) airLevel.snap(airLevel.target);
+    if (step(airLevel, dt) || airLevel.x > 0.001) moving = true;
+
+    // The scene itself moved this frame (disks, box springs, input): only then does the shadow map need redrawing.
+    // The arrival and the sway move only the camera, which a shadow map does not depend on.
+    if (moving || dirty) shadowsDirty = true;
+
     if (arrivalT < 1) {
       arrivalT = Math.min(1, arrivalT + dt / 1.3);
+      moving = true;
+    }
+
+    // Sway: full at rest, a quarter while reading, none for reduced motion.
+    swayLevel.target = reduced || ROOM.sway === 0 ? 0 : state.mode === "open" ? 0.25 : 1;
+    if (reduced) swayLevel.snap(swayLevel.target);
+    step(swayLevel, dt);
+    if (swayLevel.x > 0.001) {
+      swayT += dt;
+      moving = true;
+    }
+    breathT += dt;
+    if (state.mode === "held" && !reduced) moving = true;
+
+    // The screen's light comes up as the screen wakes and goes as it sleeps (reduced motion: at once).
+    if (Math.abs(screenTarget - screenLevel) > 0.002) {
+      screenLevel = reduced ? screenTarget : screenLevel + (screenTarget - screenLevel) * Math.min(1, dt * 10);
+      screenLight.intensity = ROOM.screenLight * screenLevel;
       moving = true;
     }
 
@@ -948,7 +1211,6 @@ export function createStage(canvas: HTMLCanvasElement, field: HTMLElement, store
     dirty = false;
     renderedLastFrame = true;
 
-    box.group.position.z = pos.x * GAP;
     placeCamera(easeOutCubic(arrivalT));
     for (const n of nodes.values()) {
       placeNode(n, n === pres);
@@ -959,6 +1221,9 @@ export function createStage(canvas: HTMLCanvasElement, field: HTMLElement, store
         n.disk.labelMat.color.setScalar(Math.min(1, k));
       }
     }
+    // Shadows are redrawn only when the scene moved (the polish pass: the always-on sway costs no shadow passes).
+    renderer.shadowMap.needsUpdate = shadowsDirty;
+    shadowsDirty = false;
     renderer.render(scene, camera);
   }
   frame = requestAnimationFrame(tick);
@@ -996,10 +1261,13 @@ export function createStage(canvas: HTMLCanvasElement, field: HTMLElement, store
     for (let pass = 0; pass < 4; pass++) {
       for (const n of nodes.values()) {
         n.liftDelay = 0;
+        // Snapped into the drive (a #/name/readme link): it was latched and drawn in already.
+        n.latchT = store.state.mode === "open" && n === currentNode ? LATCH_HOLD * motionTempo : 0;
         if (n.alive) n.lift.target = 1;
         gate(n, store.state.mode);
         n.lean.target = leanFor(n.slot - pos.x);
-        for (const s of [n.pull, n.turn, n.open, n.lift, n.lean, n.peek, n.shutterPeek]) s.snap();
+        for (const s of [n.pull, n.turn, n.open, n.seat, n.lift, n.lean, n.peek, n.shutterPeek]) s.snap();
+        n.follow.snap(smoothstep(n.turn.x));
       }
     }
     if (store.state.mode === "browsing") store.settle();
@@ -1017,6 +1285,26 @@ export function createStage(canvas: HTMLCanvasElement, field: HTMLElement, store
         for (let k = 0; k < n; k++) advance(1 / 60, 1 / 60, k === n - 1);
       },
       snap: snapAll,
+      /** The current disk's centre on screen (CSS px) and its springs, for sampling motion on the fixed clock. */
+      probe() {
+        const n = currentNode;
+        if (!n) return null;
+        const p = n.disk.group.getWorldPosition(new THREE.Vector3()).project(camera);
+        const r = canvas.getBoundingClientRect();
+        const q = n.disk.group.quaternion;
+        return {
+          x: r.left + ((p.x + 1) / 2) * r.width,
+          y: r.top + ((1 - p.y) / 2) * r.height,
+          pull: n.pull.x,
+          turn: n.turn.x,
+          open: n.open.x,
+          seat: n.seat.x,
+          follow: n.follow.x,
+          land: n.land.x,
+          quat: [q.x, q.y, q.z, q.w],
+          mode: store.state.mode,
+        };
+      },
       flip() {
         inspectYaw.snap(Math.PI);
         dirty = true;

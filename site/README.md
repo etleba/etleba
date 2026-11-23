@@ -6,12 +6,15 @@ The look is Zufall Stochastic Editorial: warm paper, ink type and black disks in
 - every project is drawn as a generated figure, a point study, a branch or a distribution, chosen by its language and shaped by its stars, age and last push;
 - each disk's label is a paper sticker with its figure, name and code, and one disk in five is inverse;
 - everything readable is set in Inter, ink on warm paper, with square corners and one-pixel rules;
-- the index is the one inverse chapter, off-white on deep grey, and the README comes up on a paper sheet with a drive down its edge;
-- the springs and motion are as they were, and the page no longer flickers.
+- the index is the one inverse chapter, off-white on deep grey;
+- beside the box stands the reader, a floating screen with a drive slot. It sits on dark standby, showing the box as points, and wakes when a disk goes in, its light falling on the box;
+- the box is one size, thick-walled charcoal board. A disk is drawn up out of it as if gripped, carried over to your hand, and lives there with a slow roll and breath. In the drive it meets the slot, clicks into the latch, and is drawn in slowly while the screen's glass warms; the README wakes when it is seated. The camera sways slightly and the reader floats.
 
-A quick boot screen draws the first view off the main thread and caches it for next time. Sound, synthesised in the browser, is there if you turn it on.
+A quick boot screen draws the first view off the main thread and caches it for next time. Sound, synthesised in the browser, is on by default and starts with your first click or key.
 
-The look is recorded in [`recipe/direction-v5.md`](recipe/direction-v5.md). The disks, the boot and the polish are in [`recipe/direction-v4.md`](recipe/direction-v4.md), and [`recipe/direction-v3.md`](recipe/direction-v3.md) is kept as the earlier look. The plain baseline it was built from is in [`recipe/baseline.md`](recipe/baseline.md). The earlier "Heat Sheet" language is in [`recipe/direction-v2.md`](recipe/direction-v2.md), with its code set aside in [`parked/`](parked/).
+The site is built for desktop browsers. Below 1024 px wide, or on a touch device with no hover (phones and tablets), it shows a short notice asking for the desktop site and never loads the 3D app.
+
+The reader, the box and the motion polish are recorded in [`recipe/direction-v6.md`](recipe/direction-v6.md); the type, paper and figures in [`recipe/direction-v5.md`](recipe/direction-v5.md). The disks, the boot and the polish are in [`recipe/direction-v4.md`](recipe/direction-v4.md), and [`recipe/direction-v3.md`](recipe/direction-v3.md) is kept as the earlier look. The plain baseline it was built from is in [`recipe/baseline.md`](recipe/baseline.md). The earlier "Heat Sheet" language is in [`recipe/direction-v2.md`](recipe/direction-v2.md), with its code set aside in [`parked/`](parked/).
 
 ## Run
 
@@ -38,13 +41,14 @@ pnpm runs through `npx` because Node 25 and later no longer ship corepack. If pn
 **Keyboard**
 - The arrow keys flip through the box. Page Up and Page Down jump five; Home and End go to the first or last disk.
 - Type the start of a name to jump to it.
-- Enter puts the disk in the drive and Esc ejects it. `F` turns the disk over.
+- Enter takes the disk out of the box; Enter again puts it in the reader. Esc ejects it, and Esc again puts it back in the box. `F` turns the disk in your hand over.
+- While a disk is read, the up and down arrows, Page Up and Page Down, Space (Shift+Space goes back), Home and End scroll the README on the screen. The left and right arrows still flip through the box.
 
 **Pointer**
-- The wheel, a sideways drag, or a drag down towards you flips through the box.
+- The wheel, a sideways drag, or a drag down towards you flips through the box. While a disk is read, the wheel scrolls the README instead.
 - Hovering a disk in the box lifts it and names it; clicking it takes it out.
 - Drag the disk that is out to turn it in your hand, or flick it to spin it. Face down, its write-protect tab clicks.
-- Tapping the disk that is out puts it in the drive.
+- Clicking the disk that is out puts it in the reader.
 
 **Index**
 - Index in the header (or the `I` key) opens the full-screen list of figures, which is the same list as the box.
@@ -53,9 +57,8 @@ pnpm runs through `npx` because Node 25 and later no longer ship corepack. If pn
 
 **Other**
 - "Motion" in the header reduces motion. The system preference is honoured by default.
-- "Sound" turns on the synthesised sounds (and a light vibration on phones). It is off until you ask for it.
+- "Sound" turns the synthesised sounds off and on. They are on by default; browsers hold them until your first click or key, and turning them off is remembered.
 - Links: `#/name` opens on a disk and `#/name/readme` opens its README. The address follows the disk you are on.
-- On phones, the box takes sideways swipes and the page scrolls vertically.
 
 ## Review
 
@@ -74,3 +77,4 @@ Query parameters for review and weak devices:
 | `?renderer=flat` | No-WebGL fallback |
 | `?quality=low` | Low quality tier |
 | `?review=1` | Exposes `window.__rack.snap()`, plus `freeze()` and `step(ms)`, a fixed-step clock for sampling motion, and `flip()`; skips the boot screen's minimum |
+| `?review=1&look.<name>=<value>` | Review-only look overrides used by the lookdev wedges (for example `look.screenOff=paper`, `look.float=6`, `look.sway=2`); ignored without `review=1` |

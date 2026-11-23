@@ -1,5 +1,3 @@
-import "@fontsource-variable/inter/wght.css";
-import "./styles.css";
 import { dateLine } from "./catalogue";
 import { type Catalogue, loadCatalogue } from "./data";
 import { mountFlat } from "./flat";
@@ -14,6 +12,7 @@ import { mountBoot } from "./ui/boot";
 import { mountCaption } from "./ui/caption";
 import { mountHero } from "./ui/hero";
 import { mountIndex } from "./ui/index-list";
+import { mountReader } from "./ui/reader";
 
 const $ = <T extends Element>(sel: string): T => {
   const el = document.querySelector<T>(sel);
@@ -79,6 +78,7 @@ reflectSound();
 mountIndex($<HTMLElement>("[data-index]"), $<HTMLElement>("[data-index-open]"), store);
 mountCaption($<HTMLElement>("[data-caption]"), $<HTMLElement>("[data-turn]"), $<HTMLElement>("[data-status]"), store);
 mountBooklet($<HTMLElement>("[data-booklet]"), store);
+mountReader($<HTMLElement>("[data-reader]"), store);
 mountHero($<HTMLElement>("[data-hero]"), stageEl, store);
 
 const canvas = $<HTMLCanvasElement>("#rack");
@@ -131,7 +131,7 @@ store.on((state, previous) => {
   if (state.mode === previous.mode && state.current === previous.current) return;
   const e = store.current;
   if (!e) return;
-  if ((state.mode === "settled" || state.mode === "open") && !e.placeholder) {
+  if ((state.mode === "settled" || state.mode === "held" || state.mode === "open") && !e.placeholder) {
     const hash = `#/${encodeURIComponent(e.name)}${state.mode === "open" ? "/readme" : ""}`;
     if (location.hash !== hash) history.replaceState(null, "", hash);
     document.title = `${e.title} — Ethan Lee Barrett`;

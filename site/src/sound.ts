@@ -1,9 +1,10 @@
 /**
  * Sound (recipe/direction-v4.md, feedback): every sound is synthesised with WebAudio, so
- * there is nothing to download. Off by default; the Sound control in the bar turns it on
- * and the choice is remembered. With sound on, flip ticks also give a short vibration on
- * devices that support it. All sounds are short, quiet and rate-limited, and none plays
- * until the visitor has turned sound on with a gesture.
+ * there is nothing to download. On by default (the polish pass: "can we have sound on by
+ * default"), but silent until the visitor's first click, tap or key, because browsers allow no
+ * sound before a gesture and nothing is queued before it. The Sound control in the bar turns it
+ * off, and that choice is remembered. With sound on, flip ticks also give a short vibration on
+ * devices that support it. All sounds are short, quiet and rate-limited.
  */
 
 const KEY = "barrett-catalogue:sound";
@@ -15,14 +16,20 @@ const last = new Map<string, number>();
 
 function read(): boolean {
   try {
-    return localStorage.getItem(KEY) === "on";
+    return localStorage.getItem(KEY) !== "off";
   } catch {
-    return false;
+    return true;
   }
 }
 
+/** No sound at all until the visitor has interacted: nothing is created or scheduled before that. */
+let unlocked = false;
+for (const type of ["pointerdown", "keydown"] as const) {
+  addEventListener(type, () => (unlocked = true), { capture: true, passive: true });
+}
+
 function audio(): AudioContext | null {
-  if (!enabled) return null;
+  if (!enabled || !unlocked) return null;
   if (!ctx) {
     const AC = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!AC) return null;
@@ -124,21 +131,66 @@ export const sound = {
     tone(a, t, { type: "sine", f: 190, f2: 90, peak: 0.12, decay: 0.08 });
   },
   /** The metal shutter sliding, then its spring snapping home. */
-  shutter(): void {
+  shutter(snapDelay = 0.1): void {
     const a = audio();
     if (!a || !gate("shutter", 120)) return;
     const t = a.currentTime;
-    burst(a, t, { type: "bandpass", f: 3200, f2: 7000, q: 2, peak: 0.06, attack: 0.01, decay: 0.09 });
-    burst(a, t + 0.1, { type: "highpass", f: 4000, peak: 0.12, decay: 0.012 });
+    burst(a, t, { type: "bandpass", f: 3200, f2: 7000, q: 2, peak: 0.06, attack: 0.01, decay: Math.max(0.09, snapDelay - 0.01) });
+    burst(a, t + snapDelay, { type: "highpass", f: 4000, peak: 0.12, decay: 0.012 });
   },
-  /** Into the drive: a slide, a clunk as the hub seats. */
-  insert(): void {
+  /** The disk reaches the slot's mouth and the latch catches it: a firm click with a little body. */
+  latch(): void {
     const a = audio();
-    if (!a || !gate("insert", 200)) return;
+    if (!a || !gate("latch", 200)) return;
     const t = a.currentTime;
-    burst(a, t, { type: "lowpass", f: 1800, peak: 0.08, attack: 0.03, decay: 0.12 });
-    burst(a, t + 0.16, { type: "lowpass", f: 700, peak: 0.3, decay: 0.07 });
-    tone(a, t + 0.16, { type: "sine", f: 120, f2: 70, peak: 0.16, decay: 0.1 });
+    burst(a, t, { type: "highpass", f: 2200, peak: 0.16, decay: 0.012 });
+    burst(a, t, { type: "lowpass", f: 900, peak: 0.12, decay: 0.03 });
+    tone(a, t, { type: "sine", f: 240, f2: 150, peak: 0.06, decay: 0.04 });
+  },
+  /** The drive drawing the disk in: soft friction under the motor, for as long as the slide takes. */
+  slide(duration = 1.1): void {
+    const a = audio();
+    if (!a || !gate("slide", 300)) return;
+    const t = a.currentTime;
+    // Friction under the motor for the whole draw: rises to its loudest with the seat's speed, then falls away linearly
+    // to the seat's arrival, so the picture is never silent before the hub's clunk (sound group, experiment v2).
+    const src = a.createBufferSource();
+    src.buffer = noise;
+    src.loop = true; // the noise buffer is one second; the draw can last longer
+    const bp = a.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.Q.value = 0.8;
+    bp.frequency.setValueAtTime(700, t);
+    bp.frequency.linearRampToValueAtTime(1400, t + duration);
+    const ng = a.createGain();
+    ng.gain.setValueAtTime(0.0001, t);
+    ng.gain.exponentialRampToValueAtTime(0.045, t + duration * 0.35);
+    ng.gain.linearRampToValueAtTime(0.0001, t + duration);
+    src.connect(bp).connect(ng).connect(master!);
+    src.start(t);
+    src.stop(t + duration + 0.05);
+    const hum = a.createOscillator();
+    hum.type = "sawtooth";
+    hum.frequency.setValueAtTime(46, t);
+    hum.frequency.linearRampToValueAtTime(58, t + duration);
+    const lp = a.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = 220;
+    const g = a.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.025, t + duration * 0.3);
+    g.gain.linearRampToValueAtTime(0.0001, t + duration);
+    hum.connect(lp).connect(g).connect(master!);
+    hum.start(t);
+    hum.stop(t + duration + 0.05);
+  },
+  /** Seated: the hub's clunk as the disk drops onto the spindle. */
+  seated(): void {
+    const a = audio();
+    if (!a || !gate("seated", 200)) return;
+    const t = a.currentTime;
+    burst(a, t, { type: "lowpass", f: 700, peak: 0.3, decay: 0.07 });
+    tone(a, t, { type: "sine", f: 120, f2: 70, peak: 0.16, decay: 0.1 });
   },
   /** The drive reading: the head stepping, over the motor's hum. */
   seek(duration = 0.7): void {
