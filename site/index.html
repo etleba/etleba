@@ -88,8 +88,15 @@
       </div>
     </section>
 
+    <aside class="reader" aria-label="The reader" data-reader>
+      <div class="reader__drive" aria-hidden="true"><span class="reader__slot" data-reader-slot></span><span class="reader__led"></span><span class="reader__badge">1.44 MB</span></div>
+      <div class="reader__screen" data-reader-screen>
+        <div class="reader__idle" data-reader-idle aria-hidden="true">
+          <div class="reader__points" data-reader-points></div>
+          <p class="reader__line"><span class="reader__msg">No disk</span><span class="reader__count" data-reader-count></span></p>
+          <p class="reader__hint">Take a disk out of the box and put it in the drive to read it here.</p>
+        </div>
     <section class="spread" role="dialog" aria-modal="false" aria-labelledby="spread-title" data-booklet hidden>
-      <div class="spread__drive" aria-hidden="true"><span class="spread__slot"></span><span class="spread__led"></span><span class="spread__badge">1.44 MB</span></div>
       <div class="spread__sheet" data-booklet-sheet>
         <header class="spread__head">
           <div class="spread__bar">
@@ -110,6 +117,15 @@
         </div>
       </div>
     </section>
+      </div>
+    </aside>
+
+    <section class="notice" aria-labelledby="notice-title" data-notice hidden>
+      <p class="notice__name">Ethan Lee Barrett</p>
+      <h2 class="notice__title" id="notice-title">Please use the desktop site</h2>
+      <p class="notice__body">This catalogue of public work is a box of floppy disks you flip through, take out and read. It is built for a desktop or laptop browser, with a mouse or a keyboard.</p>
+      <p class="notice__link"><a href="https://github.com/etleba" rel="me">The repositories are on GitHub <span aria-hidden="true">↗</span></a></p>
+    </section>
 
     <noscript>
       <div class="noscript">
@@ -117,6 +133,6 @@
       </div>
     </noscript>
 
-    <script type="module" src="/src/main.ts"></script>
+    <script type="module" src="/src/entry.ts"></script>
   </body>
 </html>

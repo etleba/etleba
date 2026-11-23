@@ -125,7 +125,7 @@ export function mountIndex(root: HTMLElement, opener: HTMLElement, store: Store)
     if (idx < 0) return;
     const already = idx === store.state.current;
     close();
-    if (already && (store.state.mode === "settled" || store.state.mode === "browsing")) store.open();
+    if (already && (store.state.mode === "settled" || store.state.mode === "browsing" || store.state.mode === "held")) store.open();
     else store.select(idx, "index");
   }
 

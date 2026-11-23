@@ -1,0 +1,412 @@
+{
+  "tool": "simulate-gates",
+  "pull_clear": 0.9,
+  "status": "PASS",
+  "interpretation_boundary": "Simulates the stage's gates and springs at 120 Hz with the disk box's clearance constants; it does not render or test feel.",
+  "results": [
+    {
+      "scenario": "disk in the drive, then flip to the next one",
+      "status": "PASS",
+      "findings": [],
+      "min_clearance_while_turning": 0.021,
+      "max_second_case_turn": 0,
+      "max_open_while_unturned": 0.0462,
+      "max_pull_while_another_forward": 0,
+      "max_seat_away_from_mouth": 0,
+      "timeline": [
+        {
+          "at": 0,
+          "what": "A latched"
+        },
+        {
+          "at": 0,
+          "what": "A drawn in"
+        },
+        {
+          "at": 0,
+          "what": "A seated"
+        },
+        {
+          "at": 0,
+          "what": "A pull starts"
+        },
+        {
+          "at": 0,
+          "what": "A turn starts"
+        },
+        {
+          "at": 0,
+          "what": "A presented"
+        },
+        {
+          "at": 0,
+          "what": "A opens"
+        },
+        {
+          "at": 0,
+          "what": "A open"
+        },
+        {
+          "at": 0.2,
+          "what": "A pushed out"
+        },
+        {
+          "at": 0.983,
+          "what": "settled on B"
+        },
+        {
+          "at": 1.067,
+          "what": "A shut"
+        },
+        {
+          "at": 1.075,
+          "what": "A turns back"
+        },
+        {
+          "at": 1.358,
+          "what": "A retracts"
+        },
+        {
+          "at": 1.767,
+          "what": "A home"
+        }
+      ]
+    },
+    {
+      "scenario": "disk in the drive, then three fast flips",
+      "status": "PASS",
+      "findings": [],
+      "min_clearance_while_turning": 0.021,
+      "max_second_case_turn": 0,
+      "max_open_while_unturned": 0.0462,
+      "max_pull_while_another_forward": 0,
+      "max_seat_away_from_mouth": 0,
+      "timeline": [
+        {
+          "at": 0,
+          "what": "A latched"
+        },
+        {
+          "at": 0,
+          "what": "A drawn in"
+        },
+        {
+          "at": 0,
+          "what": "A seated"
+        },
+        {
+          "at": 0,
+          "what": "A pull starts"
+        },
+        {
+          "at": 0,
+          "what": "A turn starts"
+        },
+        {
+          "at": 0,
+          "what": "A presented"
+        },
+        {
+          "at": 0,
+          "what": "A opens"
+        },
+        {
+          "at": 0,
+          "what": "A open"
+        },
+        {
+          "at": 0.2,
+          "what": "A pushed out"
+        },
+        {
+          "at": 1.067,
+          "what": "A shut"
+        },
+        {
+          "at": 1.075,
+          "what": "A turns back"
+        },
+        {
+          "at": 1.158,
+          "what": "settled on B"
+        },
+        {
+          "at": 1.358,
+          "what": "A retracts"
+        },
+        {
+          "at": 1.767,
+          "what": "A home"
+        }
+      ]
+    },
+    {
+      "scenario": "held disk flipped away, then taken again on its way home",
+      "status": "PASS",
+      "findings": [],
+      "min_clearance_while_turning": 0.021,
+      "max_second_case_turn": 0,
+      "max_open_while_unturned": 0,
+      "max_pull_while_another_forward": 0,
+      "max_seat_away_from_mouth": 0,
+      "timeline": [
+        {
+          "at": 0,
+          "what": "A pull starts"
+        },
+        {
+          "at": 0,
+          "what": "A turn starts"
+        },
+        {
+          "at": 0,
+          "what": "A presented"
+        },
+        {
+          "at": 0.2,
+          "what": "A turns back"
+        },
+        {
+          "at": 0.483,
+          "what": "A retracts"
+        },
+        {
+          "at": 2.217,
+          "what": "A presented again"
+        }
+      ]
+    },
+    {
+      "scenario": "take, read, eject to the hand, put back",
+      "status": "PASS",
+      "findings": [],
+      "min_clearance_while_turning": 0.021,
+      "max_second_case_turn": 0,
+      "max_open_while_unturned": 0,
+      "max_pull_while_another_forward": 0,
+      "max_seat_away_from_mouth": 0,
+      "timeline": [
+        {
+          "at": 0.158,
+          "what": "A pull starts"
+        },
+        {
+          "at": 0.7,
+          "what": "A turn starts"
+        },
+        {
+          "at": 1.617,
+          "what": "A presented"
+        },
+        {
+          "at": 2.6,
+          "what": "A opens"
+        },
+        {
+          "at": 3.367,
+          "what": "A latched"
+        },
+        {
+          "at": 3.508,
+          "what": "A drawn in"
+        },
+        {
+          "at": 3.567,
+          "what": "A open"
+        },
+        {
+          "at": 4.617,
+          "what": "A seated"
+        },
+        {
+          "at": 6.2,
+          "what": "A pushed out"
+        },
+        {
+          "at": 7.067,
+          "what": "A shut"
+        },
+        {
+          "at": 8.2,
+          "what": "A turns back"
+        },
+        {
+          "at": 8.483,
+          "what": "A retracts"
+        },
+        {
+          "at": 8.892,
+          "what": "A home"
+        }
+      ]
+    },
+    {
+      "scenario": "in the drive, ejected while still being drawn in",
+      "status": "PASS",
+      "findings": [],
+      "min_clearance_while_turning": 0.021,
+      "max_second_case_turn": 0,
+      "max_open_while_unturned": 0,
+      "max_pull_while_another_forward": 0,
+      "max_seat_away_from_mouth": 0,
+      "timeline": [
+        {
+          "at": 0.158,
+          "what": "A pull starts"
+        },
+        {
+          "at": 0.7,
+          "what": "A turn starts"
+        },
+        {
+          "at": 1.617,
+          "what": "A presented"
+        },
+        {
+          "at": 2.6,
+          "what": "A opens"
+        },
+        {
+          "at": 3.367,
+          "what": "A latched"
+        },
+        {
+          "at": 3.508,
+          "what": "A drawn in"
+        },
+        {
+          "at": 3.567,
+          "what": "A open"
+        },
+        {
+          "at": 5.267,
+          "what": "A shut"
+        }
+      ]
+    },
+    {
+      "scenario": "held disk flipped away, the next taken at once",
+      "status": "PASS",
+      "findings": [],
+      "min_clearance_while_turning": 0.021,
+      "max_second_case_turn": 0,
+      "max_open_while_unturned": 0,
+      "max_pull_while_another_forward": 0,
+      "max_seat_away_from_mouth": 0,
+      "timeline": [
+        {
+          "at": 0,
+          "what": "A pull starts"
+        },
+        {
+          "at": 0,
+          "what": "A turn starts"
+        },
+        {
+          "at": 0,
+          "what": "A presented"
+        },
+        {
+          "at": 0.2,
+          "what": "A turns back"
+        },
+        {
+          "at": 0.483,
+          "what": "A retracts"
+        },
+        {
+          "at": 0.483,
+          "what": "B pull starts"
+        },
+        {
+          "at": 0.892,
+          "what": "A home"
+        },
+        {
+          "at": 1.025,
+          "what": "B turn starts"
+        },
+        {
+          "at": 1.942,
+          "what": "B presented"
+        }
+      ]
+    },
+    {
+      "scenario": "in the drive, ejected and flipped at once",
+      "status": "PASS",
+      "findings": [],
+      "min_clearance_while_turning": 0.021,
+      "max_second_case_turn": 0,
+      "max_open_while_unturned": 0.0462,
+      "max_pull_while_another_forward": 0,
+      "max_seat_away_from_mouth": 0,
+      "timeline": [
+        {
+          "at": 0,
+          "what": "A latched"
+        },
+        {
+          "at": 0,
+          "what": "A drawn in"
+        },
+        {
+          "at": 0,
+          "what": "A seated"
+        },
+        {
+          "at": 0,
+          "what": "A pull starts"
+        },
+        {
+          "at": 0,
+          "what": "A turn starts"
+        },
+        {
+          "at": 0,
+          "what": "A presented"
+        },
+        {
+          "at": 0,
+          "what": "A opens"
+        },
+        {
+          "at": 0,
+          "what": "A open"
+        },
+        {
+          "at": 0.2,
+          "what": "A pushed out"
+        },
+        {
+          "at": 1.067,
+          "what": "A shut"
+        },
+        {
+          "at": 1.075,
+          "what": "A turns back"
+        },
+        {
+          "at": 1.358,
+          "what": "A retracts"
+        },
+        {
+          "at": 1.358,
+          "what": "B pull starts"
+        },
+        {
+          "at": 1.767,
+          "what": "A home"
+        },
+        {
+          "at": 1.9,
+          "what": "B turn starts"
+        },
+        {
+          "at": 2.817,
+          "what": "B presented"
+        }
+      ]
+    }
+  ]
+}

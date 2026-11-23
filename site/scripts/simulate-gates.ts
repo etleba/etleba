@@ -1,18 +1,21 @@
 /**
  * Gate simulation (interactive-and-realtime-motion: interruption and reversal; 3d-motion-design:
  * collision clearance). Runs the stage's own springs and gates (src/motion.ts, src/gates.ts) on
- * three scenarios and checks the invariants the direction promises, for the disk box
- * (recipe/direction-v4.md):
+ * the interruption scenarios below and checks the invariants the direction promises, for the disk
+ * box (recipe/direction-v4.md, with v6's held state: a disk comes out only when taken, and the
+ * eject returns it to the hand, recipe/direction-v6.md):
  *   clearance   a disk travels out of its slot towards the camera only once its foot is above
  *               the tops of the disks leaning towards the viewer; until then it stays in its
  *               slot's plane, parallel to its neighbours, with the slot spacing to spare
  *   exclusive   two disks are never out at once
  *   order       a disk goes into the drive only when presented, and turns back only once ejected
+ *   seat        the drive draws a disk in only from the slot's mouth, after the latch, and the disk
+ *               leaves the mouth for the hand only once the drive has pushed it out
  *   front       no disk lifts out while another is still on its way home
  * Run: node --experimental-strip-types scripts/simulate-gates.ts [--output file]
  */
 import { writeFileSync } from "node:fs";
-import { FRONT_CLEAR, PULL_CLEAR, STIFFNESS, TURN_BLOCK, gateCase } from "../src/gates.ts";
+import { FRONT_CLEAR, OPEN_AT_MOUTH, PHRASE_TEMPO, PULL_CLEAR, TURN_BLOCK, gateCase } from "../src/gates.ts";
 import { Spring } from "../src/motion.ts";
 
 // Disk and box constants, as in src/floppy.ts and src/stage.ts.
@@ -25,6 +28,8 @@ const PULL_LIFT = 0.98 * H;
 /** Turn below this keeps the disk over its slot (src/stage.ts: travel starts at turn 0.1). */
 const TRAVEL_FROM = 0.1;
 const DT = 1 / 120;
+/** As src/stage.ts: the latch holds the disk at the mouth this long before the drive draws it in. */
+const LATCH_HOLD = 0.16 * PHRASE_TEMPO;
 /**
  * Clearance of a disk from its neighbours. Travelling: the height of its foot, slid up its own
  * plane, over the tops of the disks leaning towards the viewer. Still over its slot: the gap
@@ -40,6 +45,8 @@ interface Case {
   pull: Spring;
   turn: Spring;
   open: Spring;
+  seat: Spring;
+  latchT: number;
 }
 
 function makeCase(name: string): Case {
@@ -47,11 +54,13 @@ function makeCase(name: string): Case {
     name,
     pull: new Spring(0, { stiffness: 200, ratio: 1 }),
     turn: new Spring(0, { stiffness: 150, ratio: 1 }),
-    open: new Spring(0, { stiffness: STIFFNESS.open.out, ratio: 1 }),
+    open: new Spring(0, { stiffness: 90, ratio: 1 }),
+    seat: new Spring(0, { stiffness: 22, ratio: 1 }),
+    latchT: 0,
   };
 }
 
-type Mode = "browsing" | "settled" | "open";
+type Mode = "browsing" | "settled" | "held" | "open";
 interface Event {
   at: number;
   current?: string;
@@ -60,7 +69,9 @@ interface Event {
 
 function run(name: string, events: Event[], seconds: number, start: { current: string; mode: Mode; out: string[] }) {
   const cases = new Map(["A", "B", "C"].map((n) => [n, makeCase(n)]));
-  for (const n of start.out) for (const s of ["pull", "turn", "open"] as const) cases.get(n)![s].snap(start.mode === "open" || s !== "open" ? 1 : 0);
+  for (const n of start.out) for (const s of ["pull", "turn", "open", "seat"] as const) cases.get(n)![s].snap(start.mode === "open" || (s !== "open" && s !== "seat") ? 1 : 0);
+  // A disk that starts in the drive has been latched all along (as the stage's snapAll does).
+  if (start.mode === "open") for (const n of start.out) cases.get(n)!.latchT = LATCH_HOLD;
   const slot: Record<string, number> = { A: 0, B: 1, C: 2 };
   const pos = new Spring(slot[start.current], { stiffness: 120, ratio: 1 });
   let current = start.current;
@@ -71,10 +82,13 @@ function run(name: string, events: Event[], seconds: number, start: { current: s
   let maxDoubleTurn = 0;
   let maxOpenWhileUnturned = 0;
   let maxPullWhileAnotherForward = 0;
+  let maxSeatAwayFromMouth = 0;
   const marks: Record<string, number> = {};
   const mark = (key: string, t: number) => {
     if (!(key in marks)) marks[key] = Number(t.toFixed(3));
   };
+  // Disks that have been out of the box, for the way-home marks.
+  const been = new Set(start.out);
   const queue = events.slice();
   for (let t = 0; t <= seconds; t += DT) {
     while (queue.length && queue[0].at <= t + 1e-9) {
@@ -101,23 +115,37 @@ function run(name: string, events: Event[], seconds: number, start: { current: s
         if (o.turn.x > TURN_BLOCK) another = true;
         if (o.turn.x > FRONT_CLEAR) forward = true;
       }
-      gateCase(c, c.name === current && (mode === "settled" || mode === "open"), mode === "open", another, forward);
+      // As src/stage.ts gate(): a disk is out only while held or in the drive (v6); settling no longer takes it out.
+      gateCase(c, c.name === current && (mode === "held" || mode === "open"), mode === "open", another, forward, c.latchT >= LATCH_HOLD);
     }
     for (const c of cases.values()) {
       c.pull.step(DT);
       c.turn.step(DT);
       c.open.step(DT);
+      c.seat.step(DT);
+      c.latchT = c.open.target === 1 && c.open.x > OPEN_AT_MOUTH ? c.latchT + DT : 0;
+      if (c.open.x < 0.95) maxSeatAwayFromMouth = Math.max(maxSeatAwayFromMouth, c.seat.x);
+      if (c.latchT > 0) mark(`${c.name} latched`, t);
+      if (c.seat.target === 1) mark(`${c.name} drawn in`, t);
+      if (c.seat.x > 0.97) mark(`${c.name} seated`, t);
+      if (been.has(`${c.name}:seated`) && c.seat.target === 0) mark(`${c.name} pushed out`, t);
+      if (c.seat.x > 0.97) been.add(`${c.name}:seated`);
       if (c.turn.x > 0.001) minClearanceWhileTurning = Math.min(minClearanceWhileTurning, clearance(c.pull.x, c.turn.x));
       if (c.turn.x < 0.9) maxOpenWhileUnturned = Math.max(maxOpenWhileUnturned, c.open.x);
       if (c.pull.x > 0.01) mark(`${c.name} pull starts`, t);
+      if (c.pull.x > 0.5) been.add(c.name);
       if (c.turn.target === 1) mark(`${c.name} turn starts`, t);
       if (c.turn.x > 0.99) mark(`${c.name} presented`, t);
+      if (c.turn.x > 0.99 && been.has(`${c.name}:turned back`)) mark(`${c.name} presented again`, t);
+      if (been.has(`${c.name}:presented`) && c.turn.target === 0) been.add(`${c.name}:turned back`);
       if (c.open.target === 1) mark(`${c.name} opens`, t);
       if (c.open.x > 0.99) mark(`${c.name} open`, t);
-      if (start.out.includes(c.name) && c.open.target === 0 && c.open.x < 0.06) mark(`${c.name} shut`, t);
-      if (start.out.includes(c.name) && c.turn.target === 0) mark(`${c.name} turns back`, t);
-      if (start.out.includes(c.name) && c.pull.target === 0) mark(`${c.name} retracts`, t);
-      if (start.out.includes(c.name) && c.pull.target === 0 && c.pull.x < 0.01) mark(`${c.name} home`, t);
+      if (been.has(c.name) && c.open.x > 0.99) been.add(`${c.name}:read`);
+      if (been.has(`${c.name}:read`) && c.open.target === 0 && c.open.x < 0.06) mark(`${c.name} shut`, t);
+      if (c.turn.x > 0.99) been.add(`${c.name}:presented`);
+      if (been.has(`${c.name}:presented`) && c.turn.target === 0) mark(`${c.name} turns back`, t);
+      if (been.has(c.name) && c.pull.target === 0) mark(`${c.name} retracts`, t);
+      if (been.has(c.name) && c.pull.target === 0 && c.pull.x < 0.01) mark(`${c.name} home`, t);
     }
     for (const c of cases.values()) {
       const forward = [...cases.values()].some((o) => o !== c && o.turn.x > 0.45);
@@ -130,6 +158,7 @@ function run(name: string, events: Event[], seconds: number, start: { current: s
   if (minClearanceWhileTurning < 0) findings.push({ level: "FAIL", code: "clearance", message: `a travelling disk came within ${minClearanceWhileTurning.toFixed(3)} of the disks in front` });
   if (maxDoubleTurn > 0.06) findings.push({ level: "FAIL", code: "exclusive", message: `two disks out at once (second ${maxDoubleTurn.toFixed(3)})` });
   if (maxPullWhileAnotherForward > 0.02) findings.push({ level: "FAIL", code: "front", message: `a disk lifted ${maxPullWhileAnotherForward.toFixed(3)} while another was still on its way home` });
+  if (maxSeatAwayFromMouth > 0.02) findings.push({ level: "FAIL", code: "seat", message: `a disk was ${maxSeatAwayFromMouth.toFixed(3)} into the drive while away from the slot's mouth` });
   if (maxOpenWhileUnturned > 0.08) findings.push({ level: "FAIL", code: "order", message: `a disk was ${maxOpenWhileUnturned.toFixed(3)} into the drive while not presented` });
   return {
     scenario: name,
@@ -139,6 +168,7 @@ function run(name: string, events: Event[], seconds: number, start: { current: s
     max_second_case_turn: Number(maxDoubleTurn.toFixed(4)),
     max_open_while_unturned: Number(maxOpenWhileUnturned.toFixed(4)),
     max_pull_while_another_forward: Number(maxPullWhileAnotherForward.toFixed(4)),
+    max_seat_away_from_mouth: Number(maxSeatAwayFromMouth.toFixed(4)),
     timeline: Object.entries(marks).sort((a, b) => a[1] - b[1]).map(([what, at]) => ({ at, what })),
   };
 }
@@ -146,7 +176,11 @@ function run(name: string, events: Event[], seconds: number, start: { current: s
 const results = [
   run("disk in the drive, then flip to the next one", [{ at: 0.2, current: "B" }], 4, { current: "A", mode: "open", out: ["A"] }),
   run("disk in the drive, then three fast flips", [{ at: 0.2, current: "B" }, { at: 0.32, current: "C" }, { at: 0.44, current: "B" }], 4, { current: "A", mode: "open", out: ["A"] }),
-  run("presenting disk reversed mid-turn", [{ at: 0.2, current: "B" }, { at: 1.35, current: "A" }], 5, { current: "A", mode: "settled", out: ["A"] }),
+  run("held disk flipped away, then taken again on its way home", [{ at: 0.2, current: "B" }, { at: 0.6, current: "A" }, { at: 0.7, mode: "held" }], 5, { current: "A", mode: "held", out: ["A"] }),
+  run("take, read, eject to the hand, put back", [{ at: 0.1, mode: "held" }, { at: 2.6, mode: "open" }, { at: 6.2, mode: "held" }, { at: 8.2, mode: "settled" }], 11, { current: "A", mode: "settled", out: [] }),
+  run("in the drive, ejected while still being drawn in", [{ at: 0.1, mode: "held" }, { at: 2.6, mode: "open" }, { at: 4.4, mode: "held" }], 8, { current: "A", mode: "settled", out: [] }),
+  run("held disk flipped away, the next taken at once", [{ at: 0.2, current: "B" }, { at: 0.25, mode: "held" }], 5, { current: "A", mode: "held", out: ["A"] }),
+  run("in the drive, ejected and flipped at once", [{ at: 0.2, mode: "held" }, { at: 0.22, current: "B" }, { at: 0.3, mode: "held" }], 6, { current: "A", mode: "open", out: ["A"] }),
 ];
 const out = {
   tool: "simulate-gates",

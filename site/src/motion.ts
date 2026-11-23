@@ -10,6 +10,12 @@ export interface SpringOptions {
   /** 1 is critically damped (no overshoot). Below 1 overshoots; above 1 is sluggish. */
   ratio?: number;
   mass?: number;
+  /**
+   * Stiffness of a critically damped lead that the spring chases instead of the raw target (0 or
+   * absent: no lead). A step in the target then starts at zero acceleration, as a held object does
+   * when it is gripped and drawn rather than kicked; on a retarget the lead keeps its own velocity.
+   */
+  lead?: number;
 }
 
 export class Spring {
@@ -19,13 +25,21 @@ export class Spring {
   k: number;
   c: number;
   readonly m: number;
+  ratio: number;
+  /** The lead's stiffness (0: none), its position and velocity. */
+  leadK: number;
+  aim: number;
+  aimV = 0;
 
   constructor(initial: number, opts: SpringOptions) {
     this.x = initial;
     this.target = initial;
+    this.aim = initial;
     this.k = opts.stiffness;
     this.m = opts.mass ?? 1;
-    this.c = 2 * Math.sqrt(this.k * this.m) * (opts.ratio ?? 1);
+    this.ratio = opts.ratio ?? 1;
+    this.c = 2 * Math.sqrt(this.k * this.m) * this.ratio;
+    this.leadK = opts.lead ?? 0;
   }
 
   /** Semi-implicit Euler with sub-stepping; stable for the stiffness range used here. */
@@ -33,7 +47,14 @@ export class Spring {
     const steps = Math.max(1, Math.ceil(dt / (1 / 240)));
     const h = dt / steps;
     for (let i = 0; i < steps; i++) {
-      const a = (-this.k * (this.x - this.target) - this.c * this.v) / this.m;
+      if (this.leadK > 0) {
+        this.aimV += (-this.leadK * (this.aim - this.target) - 2 * Math.sqrt(this.leadK) * this.aimV) * h;
+        this.aim += this.aimV * h;
+      } else {
+        this.aim = this.target;
+        this.aimV = 0;
+      }
+      const a = (-this.k * (this.x - this.aim) - this.c * this.v) / this.m;
       this.v += a * h;
       this.x += this.v * h;
     }
@@ -44,10 +65,17 @@ export class Spring {
     return Math.abs(this.x - this.target) < tolerance && Math.abs(this.v) < velocityTolerance;
   }
 
-  /** Change stiffness (and damping ratio) in flight; position and velocity are kept. */
-  tune(stiffness: number, ratio = 1): void {
-    if (this.k === stiffness) return;
+  /** Change stiffness, damping ratio and lead in flight; position and velocity (and the lead's) are kept. */
+  tune(stiffness: number, ratio = 1, lead = 0): void {
+    if (this.k === stiffness && this.ratio === ratio && this.leadK === lead) return;
+    if (this.leadK === 0 && lead > 0) {
+      // A lead switched on starts where the spring is, moving with it, so nothing jumps.
+      this.aim = this.x;
+      this.aimV = this.v;
+    }
     this.k = stiffness;
+    this.ratio = ratio;
+    this.leadK = lead;
     this.c = 2 * Math.sqrt(stiffness * this.m) * ratio;
   }
 
@@ -55,7 +83,9 @@ export class Spring {
   snap(value = this.target): void {
     this.x = value;
     this.target = value;
+    this.aim = value;
     this.v = 0;
+    this.aimV = 0;
   }
 }
 

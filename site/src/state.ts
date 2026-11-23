@@ -8,14 +8,17 @@ import type { MotionPreference } from "./motion";
  * Modes (interactive-and-realtime-motion: state model and feedback):
  *   loading  → the catalogue is not yet available; the caption says so in text.
  *   failed   → neither live nor snapshot data loaded; recovery is a link to GitHub.
- *   browsing → the rack is turning or about to; no case is out.
- *   settled  → the rack has stopped on `current`; that case is out of the rack.
- *   open     → the settled case is open and the booklet shows its README.
+ *   browsing → the box is moving or about to; no disk is out.
+ *   settled  → the box has stopped on `current`; the disk is still in the box.
+ *   held     → the visitor took the current disk out (a click or Enter); it is in the hand.
+ *   open     → the disk is in the reader and its README is on the screen.
  *
- * `current` is the committed selection (an index into `visible`). The stage owns the
- * continuous rack position in flight; it reports `settle()` when the spring has stopped.
+ * A disk comes out only when asked: settling never takes one out (the polish pass, after
+ * "it should be when you click right?"). `current` is the committed selection (an index into
+ * `visible`). The stage owns the continuous box position in flight; it reports `settle()` when
+ * the spring has stopped.
  */
-export type Mode = "loading" | "failed" | "browsing" | "settled" | "open";
+export type Mode = "loading" | "failed" | "browsing" | "settled" | "held" | "open";
 export type ReadmeStatus = "idle" | "loading" | "ready" | "missing" | "error";
 
 export interface State {
@@ -134,17 +137,29 @@ export class Store {
 
   /** The stage reports motion has begun again (drag start). */
   unsettle(): void {
-    if (this.state.mode === "settled" || this.state.mode === "open") this.commit({ mode: "browsing" });
+    if (this.state.mode === "settled" || this.state.mode === "held" || this.state.mode === "open") this.commit({ mode: "browsing" });
   }
 
+  /** Take the current disk out of the box and into the hand. */
+  take(): void {
+    if ((this.state.mode === "settled" || this.state.mode === "browsing") && this.current) this.commit({ mode: "held" });
+  }
+
+  /** Put the disk in the hand back in the box. */
+  put(): void {
+    if (this.state.mode === "held") this.commit({ mode: "settled" });
+  }
+
+  /** Into the reader: from the hand, or straight from the box (Read the disk, a link to its README). */
   open(): void {
-    if (this.state.mode === "settled" || this.state.mode === "browsing") {
+    if (this.state.mode === "settled" || this.state.mode === "browsing" || this.state.mode === "held") {
       if (this.current) this.commit({ mode: "open" });
     }
   }
 
+  /** Eject: the disk comes back out of the reader into the hand. */
   close(): void {
-    if (this.state.mode === "open") this.commit({ mode: "settled" });
+    if (this.state.mode === "open") this.commit({ mode: "held" });
   }
 
   setReadme(name: string, status: ReadmeStatus, html?: string): void {

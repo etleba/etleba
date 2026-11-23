@@ -54,6 +54,13 @@
   --gutter: clamp(16px, 1.7vw, 24px);
   --cols: 12;
   --spread-w: min(760px, 54vw);
+  /* The reader's screen: off (a little darker than the paper) and awake (the brightest surface on the page). */
+  --screen-off: #E1E0DC;
+  --screen-on: #FBFAF6;
+  --screen-standby: #252422;
+  /* The glass warming as the drive spins up and draws the disk in (light group, experiment v2: +1 stop in linear light). */
+  --screen-warm: #363532;
+  --screen-glow-colour: rgba(255, 252, 238, 0.9);
 }
 
 *,
@@ -235,9 +242,11 @@ h3 {
 }
 /* The clip box is a little larger than the text box on every side: the display line height is below 1,
    so descenders (the p and g of "progress") and overhanging letters would be cut off by an exact clip. */
+/* Opens from the left, so the name is uncovered in reading order (animating-text, phase 6 v2: centre-out showed the
+   middle words before the first). */
 @keyframes title-open {
   from {
-    clip-path: inset(-0.25em 50% -0.25em 50%);
+    clip-path: inset(-0.25em 100% -0.25em -0.15em);
   }
   to {
     clip-path: inset(-0.25em -0.15em -0.25em -0.15em);
@@ -316,7 +325,7 @@ h3 {
   grid-row: 3;
   grid-column: 1 / span 4;
   align-self: end;
-  max-width: 36ch;
+  max-width: 32ch;
 }
 .caption__no {
   margin: 0;
@@ -349,6 +358,9 @@ h3 {
 .caption__open {
   display: inline-flex;
   align-items: center;
+  /* One width for "Read the disk" and "Eject the disk", so Enter swaps the label without the box jumping. */
+  min-width: 11.5em;
+  justify-content: space-between;
   gap: 12px;
   min-height: 44px;
   padding: 0 16px;
@@ -891,14 +903,7 @@ h3 {
   background: var(--surface-page);
 }
 
-/* While open, the sheet carries the words; the caption and neighbours step out of the way. */
-@media (min-width: 1024px) {
-  body[data-state="open"] :is(.caption, .turn) {
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity var(--motion-fast) var(--ease);
-  }
-}
+/* While a disk is read, the reader is docked beside the box, so the caption and neighbours stay (the polish pass). */
 body[data-state="loading"] :is(.caption__open, .turn) {
   visibility: hidden;
 }
@@ -1175,75 +1180,285 @@ body[data-boot] :is(.bar, .caption, .turn) {
   pointer-events: none;
 }
 
-/* ---------- the drive: the sheet's left edge (src/stage.ts feeds the disk into it) ---------- */
+/* ---------- the reader: the machine the disk goes into (D. The Reader) ----------
+   On wide screens the reader stands docked on the right of the page, under the bar: an ink
+   bezel with the drive down its left edge and a screen. It never moves. The stage's field ends
+   at the slot, so the box is framed beside it and the disk goes into the slot (src/stage.ts
+   aims the disk at it). At rest the screen is off and shows the box as points, one per disk;
+   once the disk is in, the screen wakes and the README is on it (src/ui/reader.ts). */
 
-.spread__drive {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 22px;
-  transform: translateX(-100%);
-  background: var(--surface-emphasis);
+.reader__drive,
+.reader__idle {
+  display: none;
 }
-.spread__slot {
-  position: absolute;
-  left: 50%;
-  top: calc(var(--drive-y, 50vh) - var(--drive-h, 300px) / 2 - 6px);
-  height: calc(var(--drive-h, 300px) + 12px);
-  width: 5px;
-  transform: translateX(-50%);
-  background: var(--text-primary);
-  outline: 1px solid var(--border-quiet-inverse);
-}
-/* The light: a dot, dim until the disk is read. It blinks and does not glow. */
-.spread__led {
-  position: absolute;
-  left: 50%;
-  top: calc(var(--drive-y, 50vh) + var(--drive-h, 300px) / 2 + 22px);
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  transform: translateX(-50%);
-  background: var(--border-quiet-inverse);
-}
-body[data-drive="reading"] .spread__led {
-  background: var(--text-inverse);
-  animation: led-read 700ms steps(1) both;
-}
-@keyframes led-read {
-  0%,
-  20%,
-  45%,
-  70% {
-    opacity: 1;
+
+@media (min-width: 1024px) {
+  :root {
+    --reader-w: clamp(500px, 40vw, 880px);
+    --reader-drive: 26px;
+    --reader-bezel: 14px;
   }
-  10%,
-  30%,
-  55%,
-  80% {
-    opacity: 0.25;
+  .stage__field {
+    right: calc(var(--reader-w) + var(--margin) - var(--reader-drive) / 2);
+  }
+  .turn {
+    grid-column: 1 / -1;
+    margin-right: calc(var(--reader-w) + var(--margin));
+  }
+  .reader {
+    position: fixed;
+    z-index: 20;
+    top: var(--reader-top, 72px);
+    right: var(--margin);
+    bottom: var(--margin);
+    width: var(--reader-w);
+    display: grid;
+    grid-template-columns: var(--reader-drive) minmax(0, 1fr);
+    padding: var(--reader-bezel) var(--reader-bezel) var(--reader-bezel) 0;
+    background: var(--surface-emphasis);
+  }
+  .reader__drive {
+    display: block;
+    position: relative;
+  }
+  .reader__slot {
+    position: absolute;
+    left: 50%;
+    /* Inside the bezel: without it the slot sat 16 to 18 px below the disk going into it (directing-cameras v2). */
+    top: calc(var(--drive-y, 50vh) - var(--reader-top, 72px) - var(--reader-bezel) - var(--drive-h, 300px) / 2 - 6px);
+    height: calc(var(--drive-h, 300px) + 12px);
+    width: 5px;
+    transform: translateX(-50%);
+    background: #000;
+    outline: 1px solid var(--border-quiet-inverse);
+  }
+  /* The light: a dot, dim until the disk is read. It blinks in steps. */
+  .reader__led {
+    position: absolute;
+    left: 50%;
+    top: calc(var(--drive-y, 50vh) - var(--reader-top, 72px) - var(--reader-bezel) + var(--drive-h, 300px) / 2 + 22px);
+    /* Grows a little with the screen so it still reads as a mark on wide readers (designing-motion-graphics v2). */
+    --led: 6px;
+    --led: round(clamp(6px, 0.4vw, 10px), 2px); /* whole pixels, so the dot stays crisp; 6 px where round() is unknown */
+    width: var(--led);
+    height: var(--led);
+    border-radius: 50%;
+    transform: translateX(-50%);
+    background: var(--border-quiet-inverse);
+  }
+  .reader__badge {
+    position: absolute;
+    left: 50%;
+    bottom: 10px;
+    writing-mode: vertical-rl;
+    transform: translateX(-50%) rotate(180deg);
+    font: 500 var(--size-micro) / 1 var(--font-sans);
+    letter-spacing: 0.08em;
+    color: var(--text-inverse-secondary);
+  }
+  .reader__screen {
+    position: relative;
+    overflow: hidden;
+    background: var(--screen-off);
+    /* The wake: the screen brightens like a monitor warming, not in hard steps (the reel's flash WARN). */
+    transition: background-color 320ms var(--ease);
+  }
+  .reader__idle {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: calc(var(--space-grid) * 1.5);
+    color: var(--text-secondary);
+  }
+  .reader__points {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 6px 10px;
+    padding: 0 0 14px;
+    border-bottom: 1px solid var(--border-control);
+  }
+  .reader__point {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 1px solid var(--border-control);
+    transform: translateY(var(--dy, 0px));
+  }
+  .reader__point.is-current {
+    background: var(--text-primary);
+    border-color: var(--text-primary);
+  }
+  .reader__line {
+    margin: 0;
+    display: flex;
+    gap: 16px;
+    font: 600 var(--size-body) / 1.3 var(--font-sans);
+    color: var(--text-primary);
+  }
+  .reader__count {
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-secondary);
+  }
+  .reader__hint {
+    margin: 0;
+    max-width: 40ch;
+    font: 500 var(--size-caption) / 1.35 var(--font-sans);
+  }
+  /* The README lives on the screen: no sliding, no overlay. It shows once the disk is in. */
+  .reader .spread {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    width: auto;
+    border-left: 0;
+    background: transparent;
+  }
+  .reader .spread[data-phase] {
+    animation: none;
+  }
+  .reader:not([data-awake]) .spread {
+    visibility: hidden;
+  }
+  .reader[data-awake] .reader__idle {
+    visibility: hidden;
+  }
+  /* Awake: the screen is the brightest surface on the page; its light spills past the bezel onto the paper. */
+  .reader[data-awake] .reader__screen {
+    background: var(--screen-on);
+  }
+  .reader[data-awake] {
+    box-shadow: 0 0 var(--screen-glow, 0px) calc(var(--screen-glow, 0px) / 6) var(--screen-glow-colour);
+  }
+  .reader[data-awake] .spread {
+    animation: screen-wake 260ms var(--ease) 80ms both;
+  }
+  /* The latch catches the disk: the light flashes once; it stays lit while the drive draws the disk in. */
+  body[data-drive="latched"] .reader__led,
+  body[data-drive="seating"] .reader__led {
+    background: var(--text-inverse);
+  }
+  body[data-drive="latched"] .reader__led {
+    animation: led-latch 160ms steps(1) both;
+  }
+  body[data-drive="reading"] .reader__led {
+    background: var(--text-inverse);
+    animation: led-read 700ms steps(1) both;
   }
 }
-.spread__badge {
-  position: absolute;
-  left: 50%;
-  bottom: 24px;
-  writing-mode: vertical-rl;
-  transform: translateX(-50%) rotate(180deg);
-  font: 500 var(--size-micro) / 1 var(--font-sans);
-  letter-spacing: 0.08em;
-  color: var(--text-inverse-secondary);
+/* The standby screen (approved at lookdev, the default): dark glass, the box's points faintly lit. ?look.screenOff=paper shows the paper alternative. */
+@media (min-width: 1024px) {
+  body:not([data-screen-off="paper"]) .reader__screen {
+    background: var(--screen-standby);
+  }
+  /* While the drive draws the disk in, the glass warms with the motor over the slide (1.12 s at tempo 0.85, easing in);
+     the wake at reading stays the peak. Leaving this state, the base 320 ms transition takes over. */
+  body:not([data-screen-off="paper"])[data-drive="seating"] .reader__screen {
+    background: var(--screen-warm);
+    transition: background-color 1120ms cubic-bezier(0.42, 0, 1, 1);
+  }
+  body:not([data-screen-off="paper"]) .reader__idle {
+    color: var(--text-inverse-secondary);
+  }
+  body:not([data-screen-off="paper"]) .reader__line {
+    color: var(--text-inverse);
+  }
+  body:not([data-screen-off="paper"]) .reader__points {
+    border-bottom-color: var(--border-quiet-inverse);
+  }
+  body:not([data-screen-off="paper"]) .reader__point {
+    border-color: #77766f;
+  }
+  body:not([data-screen-off="paper"]) .reader__point.is-current {
+    background: var(--text-inverse);
+    border-color: var(--text-inverse);
+  }
+}
+/* The reader floats in place while it waits (your note: "slight movement to the screen since it's floating"):
+   two sine-like drifts at periods that never line up (6.4 s and 9.7 s, built and seam-checked with
+   motion_builder.py loop in .motion/05-experiment/loops). It steadies as soon as a disk is taken out, so the
+   disk goes into a still slot and the README is read on a still screen. */
+@property --float-y {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --float-x {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --float-a {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
 }
 @media (min-width: 1024px) {
-  /* The sheet waits for the disk to come out of the drive before it goes. */
-  body[data-renderer="webgl"] .spread[data-phase="out"] {
-    animation-delay: 260ms;
+  .reader {
+    --float-amp: var(--reader-float, 3px);
+    transform: translate(calc(var(--float-x) * var(--float-a)), calc(var(--float-y) * var(--float-a)));
+    animation:
+      reader-float-y 3.2s cubic-bezier(0.37, 0, 0.63, 1) infinite alternate,
+      reader-float-x 4.85s cubic-bezier(0.37, 0, 0.63, 1) infinite alternate;
+    transition:
+      box-shadow var(--motion-state) steps(3, end),
+      --float-a 600ms var(--ease);
+  }
+  .reader[data-steady] {
+    --float-a: 0;
   }
 }
-@media (max-width: 1023px) {
-  .spread__drive {
-    display: none;
+@keyframes reader-float-y {
+  from {
+    --float-y: calc(var(--float-amp) * -1);
+  }
+  to {
+    --float-y: var(--float-amp);
+  }
+}
+@keyframes reader-float-x {
+  from {
+    --float-x: calc(var(--float-amp) * -0.4);
+  }
+  to {
+    --float-x: calc(var(--float-amp) * 0.4);
+  }
+}
+@keyframes screen-wake {
+  from {
+    opacity: 0.15;
+  }
+}
+@keyframes led-latch {
+  0% {
+    opacity: 1;
+    box-shadow: 0 0 0 calc(var(--led, 6px) / 2) rgba(242, 241, 237, 0.35);
+  }
+  50% {
+    opacity: 0.4;
+    box-shadow: none;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+/* Three even dips that end lit, so the light is steady while the README is read (designing-motion-graphics v2:
+   the old last dip held dark for up to 0.7 s as the README became readable). */
+@keyframes led-read {
+  0%,
+  24%,
+  56%,
+  86% {
+    opacity: 1;
+  }
+  8%,
+  40%,
+  70% {
+    opacity: 0.25;
   }
 }
 
@@ -1272,4 +1487,52 @@ body[data-drive="reading"] .spread__led {
     opacity: 0;
     transform: translateY(4px);
   }
+}
+
+/* ---------- the desktop notice (src/entry.ts): phones and tablets are asked for the desktop site ---------- */
+
+.notice {
+  min-height: 100svh;
+  display: grid;
+  align-content: center;
+  gap: 16px;
+  padding: var(--margin);
+  background: var(--surface-page);
+  color: var(--text-primary);
+}
+.notice[hidden] {
+  display: none;
+}
+body[data-desktop-only="on"] :is(.stage, .index, .reader, .skip, .boot) {
+  display: none !important;
+}
+.notice__name {
+  position: absolute;
+  top: var(--margin);
+  left: var(--margin);
+  right: var(--margin);
+  margin: 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-strong);
+  font: 700 var(--size-body) / 1.3 var(--font-sans);
+}
+.notice__title {
+  margin: 0;
+  max-width: 12ch;
+  font: 700 var(--size-chapter) / 1 var(--font-sans);
+  letter-spacing: -0.03em;
+}
+.notice__body {
+  margin: 0;
+  max-width: 36ch;
+  font: 400 var(--size-body) / 1.5 var(--font-sans);
+  color: var(--text-secondary);
+}
+.notice__link {
+  margin: 8px 0 0;
+  font: 500 var(--size-body) / 1.5 var(--font-sans);
+}
+.notice__link a {
+  color: inherit;
+  text-underline-offset: 3px;
 }
