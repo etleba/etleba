@@ -16,10 +16,11 @@ The look is recorded in [`recipe/direction-v5.md`](recipe/direction-v5.md). The 
 ## Run
 
 ```sh
-corepack enable
-pnpm install --frozen-lockfile
-pnpm dev
+npx -y pnpm@10.28.0 install --frozen-lockfile
+npx -y pnpm@10.28.0 dev
 ```
+
+pnpm runs through `npx` because Node 25 and later no longer ship corepack. If pnpm 10.28.0 is installed globally, plain `pnpm` works the same.
 
 - `pnpm build` type-checks and builds to `dist/`.
 - `pnpm data` refreshes `public/data/repos.json` from the GitHub API. It uses `GITHUB_TOKEN` when set and keeps the committed snapshot on any failure.
