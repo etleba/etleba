@@ -1,0 +1,339 @@
+{
+  "tool": "contrast-v5",
+  "status": "PASS",
+  "tokens": {
+    "surface-page": "#F2F1ED",
+    "surface-emphasis": "#1A1A1A",
+    "text-primary": "#111111",
+    "text-secondary": "#555555",
+    "border-quiet": "#C9C8C2",
+    "focus-ring": "#005E73",
+    "status-error": "#8A2D24",
+    "status-success": "#2E6540",
+    "status-warning": "#D6C846",
+    "text-inverse": "#F2F1ED",
+    "text-inverse-secondary": "#B4B3AD",
+    "border-quiet-inverse": "#4A4944",
+    "border-strong": "#111111",
+    "border-control": "#555555",
+    "border-control-inverse": "#B4B3AD",
+    "focus-ring-inverse": "#F2F1ED"
+  },
+  "pairs": [
+    {
+      "kind": "text",
+      "what": "Body, title and labels: ink on paper",
+      "foreground": "#111111",
+      "background": "#F2F1ED",
+      "ratio": 16.71,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "kind": "text",
+      "what": "Secondary text, captions, code line: muted ink on paper",
+      "foreground": "#555555",
+      "background": "#F2F1ED",
+      "ratio": 6.6,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "kind": "text",
+      "what": "Error message: error on paper (with a x symbol)",
+      "foreground": "#8A2D24",
+      "background": "#F2F1ED",
+      "ratio": 7.49,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "kind": "text",
+      "what": "Success text, if used: success on paper",
+      "foreground": "#2E6540",
+      "background": "#F2F1ED",
+      "ratio": 6.09,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "kind": "text",
+      "what": "Warning field text: ink on the warning field",
+      "foreground": "#111111",
+      "background": "#D6C846",
+      "ratio": 10.98,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "kind": "text",
+      "what": "Pressed button and tooltip text: paper on ink",
+      "foreground": "#F2F1ED",
+      "background": "#111111",
+      "ratio": 16.71,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "kind": "text",
+      "what": "Index text: off-white on deep field",
+      "foreground": "#F2F1ED",
+      "background": "#1A1A1A",
+      "ratio": 15.4,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "kind": "text",
+      "what": "Index secondary text, number, language, year, placeholder: on deep field",
+      "foreground": "#B4B3AD",
+      "background": "#1A1A1A",
+      "ratio": 8.28,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "kind": "text",
+      "what": "Selected index row: ink on paper",
+      "foreground": "#111111",
+      "background": "#F2F1ED",
+      "ratio": 16.71,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "kind": "text",
+      "what": "Selected index row number and meta: muted ink on paper",
+      "foreground": "#555555",
+      "background": "#F2F1ED",
+      "ratio": 6.6,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "kind": "text",
+      "what": "README code block: off-white on deep field",
+      "foreground": "#F2F1ED",
+      "background": "#1A1A1A",
+      "ratio": 15.4,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "kind": "text",
+      "what": "Drive badge and tooltip: off-white / inverse secondary on deep field",
+      "foreground": "#B4B3AD",
+      "background": "#1A1A1A",
+      "ratio": 8.28,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "kind": "text",
+      "what": "Disk label name (ink on paper sticker)",
+      "foreground": "#111111",
+      "background": "#F2F1ED",
+      "ratio": 16.71,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "kind": "text",
+      "what": "Disk label foot line (muted ink on paper sticker)",
+      "foreground": "#555555",
+      "background": "#F2F1ED",
+      "ratio": 6.6,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "kind": "text",
+      "what": "Inverse sticker name: off-white on deep field",
+      "foreground": "#F2F1ED",
+      "background": "#1A1A1A",
+      "ratio": 15.4,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "kind": "text",
+      "what": "Inverse sticker foot line: inverse secondary on deep field",
+      "foreground": "#B4B3AD",
+      "background": "#1A1A1A",
+      "ratio": 8.28,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "kind": "text",
+      "what": "Skip link: off-white on deep field",
+      "foreground": "#F2F1ED",
+      "background": "#1A1A1A",
+      "ratio": 15.4,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "kind": "non-text",
+      "what": "Focus ring on paper (2px outline)",
+      "foreground": "#005E73",
+      "background": "#F2F1ED",
+      "ratio": 6.52,
+      "required": 3.0,
+      "pass": true
+    },
+    {
+      "kind": "non-text",
+      "what": "Focus ring on deep field (index): the inverse ring",
+      "foreground": "#F2F1ED",
+      "background": "#1A1A1A",
+      "ratio": 15.4,
+      "required": 3.0,
+      "pass": true
+    },
+    {
+      "kind": "non-text",
+      "what": "Control boundary on paper: buttons, kbd (1px)",
+      "foreground": "#555555",
+      "background": "#F2F1ED",
+      "ratio": 6.6,
+      "required": 3.0,
+      "pass": true
+    },
+    {
+      "kind": "non-text",
+      "what": "Control boundary on deep field: the search field, kbd",
+      "foreground": "#B4B3AD",
+      "background": "#1A1A1A",
+      "ratio": 8.28,
+      "required": 3.0,
+      "pass": true
+    },
+    {
+      "kind": "non-text",
+      "what": "Strong rule on paper: bar, sheet edge, figure plate",
+      "foreground": "#111111",
+      "background": "#F2F1ED",
+      "ratio": 16.71,
+      "required": 3.0,
+      "pass": true
+    },
+    {
+      "kind": "non-text",
+      "what": "Inverse rule under the index head",
+      "foreground": "#F2F1ED",
+      "background": "#1A1A1A",
+      "ratio": 15.4,
+      "required": 3.0,
+      "pass": true
+    },
+    {
+      "kind": "non-text",
+      "what": "Selected marker dot: ink on the paper row",
+      "foreground": "#111111",
+      "background": "#F2F1ED",
+      "ratio": 16.71,
+      "required": 3.0,
+      "pass": true
+    },
+    {
+      "kind": "non-text",
+      "what": "Boot point, unwritten ring: control border on paper",
+      "foreground": "#555555",
+      "background": "#F2F1ED",
+      "ratio": 6.6,
+      "required": 3.0,
+      "pass": true
+    },
+    {
+      "kind": "non-text",
+      "what": "Boot point, written: ink on paper",
+      "foreground": "#111111",
+      "background": "#F2F1ED",
+      "ratio": 16.71,
+      "required": 3.0,
+      "pass": true
+    },
+    {
+      "kind": "non-text",
+      "what": "Figure ink on paper sticker, sheet and page",
+      "foreground": "#111111",
+      "background": "#F2F1ED",
+      "ratio": 16.71,
+      "required": 3.0,
+      "pass": true
+    },
+    {
+      "kind": "non-text",
+      "what": "Figure ink on the inverse sticker and the index",
+      "foreground": "#F2F1ED",
+      "background": "#1A1A1A",
+      "ratio": 15.4,
+      "required": 3.0,
+      "pass": true
+    },
+    {
+      "kind": "non-text",
+      "what": "Selected-row figure after inversion (a near-black on paper)",
+      "foreground": "#0d0e12",
+      "background": "#F2F1ED",
+      "ratio": 17.07,
+      "required": 3.0,
+      "pass": true
+    },
+    {
+      "kind": "info",
+      "what": "The paper focus ring on deep field would not pass (so the index uses the inverse ring)",
+      "foreground": "#005E73",
+      "background": "#1A1A1A",
+      "ratio": 2.36,
+      "required": null,
+      "pass": null
+    },
+    {
+      "kind": "exempt",
+      "what": "Quiet rule on paper (decorative separator, not a control boundary)",
+      "foreground": "#C9C8C2",
+      "background": "#F2F1ED",
+      "ratio": 1.48,
+      "required": null,
+      "pass": null
+    },
+    {
+      "kind": "exempt",
+      "what": "Quiet rule on deep field (decorative separator between index rows)",
+      "foreground": "#4A4944",
+      "background": "#1A1A1A",
+      "ratio": 1.93,
+      "required": null,
+      "pass": null
+    },
+    {
+      "kind": "exempt",
+      "what": "Drive light, dim: on the bezel (decorative; the sheet's text states the reading)",
+      "foreground": "#4A4944",
+      "background": "#1A1A1A",
+      "ratio": 1.93,
+      "required": null,
+      "pass": null
+    },
+    {
+      "kind": "exempt",
+      "what": "Figure construction rings, ink at 32% on paper (decorative; points and the plot carry the data)",
+      "foreground": "#aaa9a7",
+      "background": "#F2F1ED",
+      "ratio": 2.08,
+      "required": null,
+      "pass": null
+    },
+    {
+      "kind": "exempt",
+      "what": "Figure contour rules, ink at 30% on paper (decorative)",
+      "foreground": "#aeaeab",
+      "background": "#F2F1ED",
+      "ratio": 1.97,
+      "required": null,
+      "pass": null
+    }
+  ]
+}

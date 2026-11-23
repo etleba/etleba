@@ -7,6 +7,7 @@ import { labelCanvas } from "./labels";
 import { Spring, clamp, easeOutCubic, smoothstep } from "./motion";
 import { sound } from "./sound";
 import type { State, Store } from "./state";
+import { tokens } from "./tokens";
 
 /**
  * The disk box (recipe/direction-v4.md). Every repository is a 3.5" floppy standing in an
@@ -120,10 +121,12 @@ export function createStage(canvas: HTMLCanvasElement, field: HTMLElement, store
   const camBase = new THREE.Vector3(0, 4, 8);
   const lookDir = new THREE.Vector3(0, -0.5, -1).normalize();
 
-  // Light: a cold key from high on the left, off the camera's axis so the flat faces never mirror
-  // it into the lens; a rim from high behind that draws the disks' edges against the black; and
-  // almost no fill. The metal shutters catch both.
-  const key = new THREE.DirectionalLight(0xe9eefa, 2.8);
+  // Light for a paper field (recipe/direction-v5.md): a neutral soft key from high on the left,
+  // off the camera's axis so the flat faces never mirror it into the lens; a lower rim from
+  // behind that draws the disks' edges against the paper; and an even, bright fill, because the
+  // room around the box is paper. The metal shutters catch the key and the rim.
+  const page = new THREE.Color(tokens().page);
+  const key = new THREE.DirectionalLight(0xffffff, 2.8);
   key.position.set(-5.5, 6.5, 1.6);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
@@ -135,38 +138,25 @@ export function createStage(canvas: HTMLCanvasElement, field: HTMLElement, store
   key.shadow.camera.bottom = -2.4;
   key.shadow.bias = -0.0004;
   key.shadow.normalBias = 0.01;
-  key.shadow.radius = 3;
+  key.shadow.radius = 4;
   scene.add(key, key.target);
-  const rim = new THREE.DirectionalLight(0xffffff, 1.5);
-  rim.position.set(2.5, 5, -6);
+  const rim = new THREE.DirectionalLight(0xffffff, 1.2);
+  rim.position.set(2.5, 2.4, -6);
   scene.add(rim);
-  scene.add(new THREE.HemisphereLight(0x9ea6b4, 0x000000, 0.35));
+  scene.add(new THREE.HemisphereLight(page, page.clone().multiplyScalar(0.55), 1.0));
   // A soft spot straight down into the box at the gap, so the labels and shutters there read.
-  const boxSpot = new THREE.SpotLight(0xf2f4fa, 26, 7, 0.55, 0.85, 1.6);
+  const boxSpot = new THREE.SpotLight(0xffffff, 26, 7, 0.55, 0.85, 1.6);
   boxSpot.position.set(0, 3.6, 0.9);
   boxSpot.target.position.set(0, 0.35, -0.25);
   scene.add(boxSpot, boxSpot.target);
 
-  // A faint pool of light on the black floor under the box, so it stands somewhere.
-  const poolCanvas = document.createElement("canvas");
-  poolCanvas.width = poolCanvas.height = 128;
-  const pctx = poolCanvas.getContext("2d")!;
-  const grad = pctx.createRadialGradient(64, 64, 0, 64, 64, 64);
-  grad.addColorStop(0, "rgba(255,255,255,0.16)");
-  grad.addColorStop(0.55, "rgba(255,255,255,0.04)");
-  grad.addColorStop(1, "rgba(255,255,255,0)");
-  pctx.fillStyle = grad;
-  pctx.fillRect(0, 0, 128, 128);
-  const pool = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(poolCanvas), transparent: true, depthWrite: false }));
-  pool.rotation.x = -Math.PI / 2;
-  pool.position.set(0, -0.03, -0.4);
-  pool.scale.set(5, 4, 1);
-  scene.add(pool);
-
+  // No pool of light on the floor: the page is paper, and chrome and field carry no glow.
   const box = buildBox();
   scene.add(box.group);
 
-  const fog = new THREE.Fog(0x000000, 6, 12);
+  // Fog is the page's own colour, so the far disks fade into the paper. (three.js applies fog after tone
+  // mapping, so the token colour lands on the page exactly: recipe/studies/fog-check.html samples it.)
+  const fog = new THREE.Fog(page, 6, 12);
   scene.fog = fog;
 
   const nodes = new Map<string, DiskNode>();
@@ -385,7 +375,7 @@ export function createStage(canvas: HTMLCanvasElement, field: HTMLElement, store
     camera.aspect = w / h;
     layout.wide = matchMedia("(min-width: 1024px)").matches;
     const halfV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-    // Framing by proportion and position (recipe/direction-v4.md, composition): the logo holds
+    // Framing by proportion and position (recipe/direction-v4.md, composition): the title holds
     // the top of the stage; the presented disk, about two fifths of the stage tall, floats just
     // below the middle; the box sits at the foot, its current disk a fifth of the stage tall,
     // seen from above at about thirty-five degrees, so the label tops show over the disks in front.

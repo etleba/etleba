@@ -1,12 +1,11 @@
-import { logoCanvas } from "../logo";
-import { photograph } from "../xerox";
+import { figureCanvas } from "../figure";
 import { CACHE_NAME, type Job, jobKey } from "./jobs";
 
 /**
- * Draws logos and photographs off the main thread, on OffscreenCanvas, so generating art
- * never drops a frame. Each drawing is kept in Cache Storage (as WebP where the browser can
- * encode it), so a second visit decodes instead of drawing. Older generator versions' caches
- * are deleted on start.
+ * Draws figures off the main thread, on OffscreenCanvas, so generating art never drops a
+ * frame. A worker draws figures only and never draws text, so it needs no font. Each drawing is
+ * kept in Cache Storage (as WebP where the browser can encode it), so a second visit decodes
+ * instead of drawing. Older generator versions' caches are deleted on start.
  */
 // The page's DOM typings are in scope; the worker needs only these of its own globals.
 declare const self: {
@@ -44,11 +43,12 @@ self.onmessage = async (e: MessageEvent<{ id: number; job: Job }>) => {
         return;
       }
     }
-    const canvas = (job.kind === "logo" ? logoCanvas(job.text, job.height, job.ink) : photograph(job.seed, job.scene, job.w, job.h)) as OffscreenCanvas;
+    const canvas = figureCanvas(job) as OffscreenCanvas;
     const bitmap = await createImageBitmap(canvas);
     self.postMessage({ id, bitmap, cached: false }, [bitmap]);
     if (store) {
-      const blob = await canvas.convertToBlob({ type: "image/webp", quality: 0.95 });
+      // Quality 1 is lossless WebP: fine one-pixel rules and points must not be softened by the cache.
+      const blob = await canvas.convertToBlob({ type: "image/webp", quality: 1 });
       await store.put(url, new Response(blob, { headers: { "content-type": blob.type } })).catch(() => undefined);
     }
   } catch (err) {

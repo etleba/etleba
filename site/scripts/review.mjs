@@ -63,12 +63,50 @@ async function viaCurl(route) {
 const browser = await chromium.launch({ args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] });
 const log = [];
 
-async function scene(name, { viewport, query = "", reducedMotion = "no-preference", keepBoot = false, steps }) {
+// A README to open: the account has no public repository yet, so the synthetic catalogue's READMEs
+// would all be 404. This one has the shapes a README has: headings, prose, a list, a table, code.
+const SAMPLE_README = `# Sample README
+
+A short paragraph of prose, with a [link to the repository](https://github.com/etleba) and some \`inline code\`. It is here so that the sheet can be reviewed with real reading text on it.
+
+## Install
+
+\`\`\`sh
+pnpm install --frozen-lockfile
+pnpm build
+\`\`\`
+
+## Options
+
+| Option | Default | Meaning |
+| --- | --- | --- |
+| \`seed\` | \`1\` | Seeds the draw |
+| \`points\` | \`144\` | How many points |
+
+- One list item, long enough to wrap onto a second line when the sheet is narrow, as on a phone.
+- Another item.
+
+> A quotation, set off by a one-pixel rule.
+
+### Notes
+
+More prose follows, so the sheet scrolls: the sheet is paper, the text is ink, and the code block is deep field.
+`;
+
+async function scene(name, { viewport, query = "", reducedMotion = "no-preference", keepBoot = false, grayscale = false, noImages = false, throttle = 1, delayWorker = 0, steps }) {
   if (only && !name.startsWith(only)) return;
   // Service workers are blocked: requests they make bypass the route below.
   const context = await browser.newContext({ viewport, deviceScaleFactor: 1, reducedMotion, hasTouch: viewport.width < 600, ignoreHTTPSErrors: true, serviceWorkers: "block" });
   await context.route((url) => url.protocol === "https:", viaCurl);
+  // Holding the art worker back keeps the boot screen up, so its states can be captured one by one.
+  if (delayWorker) await context.route((url) => /\/assets\/worker-.*\.js$/.test(url.pathname), async (route) => { await new Promise((r) => setTimeout(r, delayWorker)); await route.continue(); });
+  // Routes added later take precedence. The GitHub API answers with an empty account (a complete,
+  // valid answer: the box holds the placeholders), and every README is the sample above.
+  await context.route((url) => url.hostname === "api.github.com", (route) => route.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: "[]" }));
+  await context.route((url) => url.hostname === "raw.githubusercontent.com", (route) => route.fulfill({ status: 200, contentType: "text/plain", headers: { "access-control-allow-origin": "*" }, body: SAMPLE_README }));
   const page = await context.newPage();
+  // A slowed page keeps the boot screen up long enough for the slow headless screenshots to catch it.
+  if (throttle > 1) await (await context.newCDPSession(page)).send("Emulation.setCPUThrottlingRate", { rate: throttle });
   const errors = [];
   page.on("console", (m) => { if (m.type() === "error" || m.type() === "warning") errors.push(`${m.type()}: ${m.text()}`); });
   page.on("pageerror", (e) => errors.push(`pageerror: ${e.message}`));
@@ -89,8 +127,12 @@ async function scene(name, { viewport, query = "", reducedMotion = "no-preferenc
     try { await page.waitForFunction(() => !document.body.dataset.boot, null, { timeout: 30000 }); }
     catch { log.push({ scene: name, warning: "boot screen did not finish" }); }
   }
+  // The reconstruction test of the design manual: grayscale, and with every image removed, leaving type, rules and surfaces.
+  if (grayscale) await page.addStyleTag({ content: "html{filter:grayscale(1)}" });
+  if (noImages) await page.addStyleTag({ content: "#rack,.track__figure canvas,.spread__plate canvas,.flat canvas{visibility:hidden}" });
   let i = 0;
   for (const step of steps) {
+    if (step.eval) await page.evaluate(step.eval);
     if (step.key) await page.keyboard.press(step.key);
     if (step.click) await page.click(step.click);
     if (step.hover) await page.hover(step.hover);
@@ -137,10 +179,14 @@ async function scene(name, { viewport, query = "", reducedMotion = "no-preferenc
 const desktop = { width: 1440, height: 900 };
 
 // The boot screen itself, without the review clock: first paint, mid-way, and the page after it.
-await scene("desktop-boot", { viewport: desktop, query: "?quality=low", keepBoot: true, steps: [
-  { wait: 60, shot: "first-paint" },
-  { wait: 450, shot: "writing" },
-  { wait: 2600, shot: "after" },
+await scene("desktop-boot", { viewport: desktop, query: "?stress=60&quality=low", keepBoot: true, delayWorker: 3000, steps: [
+  { wait: 30, shot: "first-paint" },
+  { wait: 700, shot: "title-waiting" },
+  // A look at the written state of the points. This one is simulated in the DOM (the real writing is too brief to catch in a slow headless run).
+  { eval: "document.querySelectorAll('.boot__point').forEach((p, i) => p.classList.toggle('is-written', i < 6)); document.querySelector('[data-boot-count]').textContent = '06 / 10'; document.querySelector('[data-boot-msg]').textContent = 'Writing drum field 24';", shot: "points-written-simulated" },
+  { wait: 2500, shot: "writing" },
+  { wait: 300, shot: "writing-later" },
+  { wait: 4500, shot: "after" },
 ] });
 // The presented disk up close: the shutter peeking under the pointer, the back with its hub.
 await scene("desktop-inspect", { viewport: desktop, query: "?review=1", steps: [
@@ -178,7 +224,28 @@ await scene("desktop-stress60", { viewport: desktop, query: "?stress=60&quality=
   { drag: { from: [300, 450], to: [620, 450], ms: 240 } }, { wait: 150, shot: "drag-release" },
   { snap: true }, { until: "settled" }, { snap: true }, { shot: "drag-settled" },
   { key: "Enter" }, { until: "open" }, { snap: true }, { shot: "open" },
+  { wait: 1800, shot: "open-readme" },
   { key: "Escape" }, { until: "settled" }, { snap: true },
+  { key: "i" }, { wait: 2200 }, { shot: "index" },
+] });
+// The real empty catalogue: no public repository, so the box holds the placeholders.
+await scene("desktop-empty", { viewport: desktop, query: "?quality=low&review=1", steps: [
+  { snap: true }, { until: "settled" }, { snap: true }, { shot: "settled" },
+  { key: "ArrowRight" }, { key: "ArrowRight" }, { snap: true }, { until: "settled" }, { snap: true }, { shot: "flipped" },
+  { key: "Enter" }, { until: "open" }, { snap: true }, { wait: 600, shot: "open" },
+  { key: "Escape" }, { until: "settled" }, { snap: true },
+  { key: "i" }, { wait: 2200, shot: "index" },
+] });
+// The design manual's reconstruction test: grayscale, then with the images removed.
+await scene("recon-gray", { viewport: desktop, query: "?stress=60&quality=low&review=1", grayscale: true, steps: [
+  { snap: true }, { until: "settled" }, { snap: true }, { shot: "settled" },
+  { key: "Enter" }, { until: "open" }, { snap: true }, { wait: 1800, shot: "open" },
+  { key: "Escape" }, { until: "settled" }, { key: "i" }, { wait: 2200, shot: "index" },
+] });
+await scene("recon-noimages", { viewport: desktop, query: "?stress=60&quality=low&review=1", grayscale: true, noImages: true, steps: [
+  { snap: true }, { until: "settled" }, { snap: true }, { shot: "settled" },
+  { key: "Enter" }, { until: "open" }, { snap: true }, { wait: 1800, shot: "open" },
+  { key: "Escape" }, { until: "settled" }, { key: "i" }, { wait: 2200, shot: "index" },
 ] });
 await scene("desktop-index", { viewport: desktop, query: "?quality=low&review=1", steps: [
   { snap: true }, { until: "settled" }, { snap: true },
@@ -204,15 +271,44 @@ await scene("sequence-reflow", { viewport: desktop, query: "?stress=24&quality=l
 await scene("phone-stress60", { viewport: phone, query: "?stress=60&quality=low&review=1", steps: [
   { snap: true }, { until: "settled" }, { snap: true }, { shot: "settled" },
   { key: "Enter" }, { until: "open" }, { snap: true }, { shot: "open" },
+  { wait: 1800, shot: "open-readme" },
+  { key: "Escape" }, { until: "settled" }, { key: "i" }, { wait: 2200, shot: "index" },
+] });
+await scene("phone-empty", { viewport: phone, query: "?quality=low&review=1", steps: [
+  { snap: true }, { until: "settled" }, { snap: true }, { shot: "settled" },
+  { key: "Enter" }, { until: "open" }, { snap: true }, { wait: 600, shot: "open" },
+  { key: "Escape" }, { until: "settled" }, { key: "i" }, { wait: 2200, shot: "index" },
+] });
+await scene("phone-boot", { viewport: phone, query: "?stress=60&quality=low", keepBoot: true, delayWorker: 3000, steps: [
+  { wait: 30, shot: "first-paint" },
+  { wait: 700, shot: "title-waiting" },
+  // A look at the written state of the points. This one is simulated in the DOM (the real writing is too brief to catch in a slow headless run).
+  { eval: "document.querySelectorAll('.boot__point').forEach((p, i) => p.classList.toggle('is-written', i < 6)); document.querySelector('[data-boot-count]').textContent = '06 / 10'; document.querySelector('[data-boot-msg]').textContent = 'Writing drum field 24';", shot: "points-written-simulated" },
+  { wait: 2500, shot: "writing" },
+  { wait: 300, shot: "writing-later" },
+  { wait: 4500, shot: "after" },
 ] });
 await scene("reduced-motion", { viewport: desktop, query: "?stress=60&quality=low", reducedMotion: "reduce", steps: [
   { wait: 1200, shot: "rest" },
   { key: "ArrowLeft" }, { wait: 600, shot: "after-key" },
-  { key: "Enter" }, { wait: 1200, shot: "open" },
+  { key: "Enter" }, { wait: 1800, shot: "open" },
+  { key: "Escape" }, { wait: 400 }, { key: "i" }, { wait: 2200, shot: "index" },
+] });
+await scene("phone-reduced-motion", { viewport: phone, query: "?stress=60&quality=low", reducedMotion: "reduce", steps: [
+  { wait: 1200, shot: "rest" },
+  { key: "Enter" }, { wait: 1800, shot: "open" },
 ] });
 await scene("flat-renderer", { viewport: desktop, query: "?stress=60&renderer=flat", steps: [
   { wait: 1200, shot: "rest" },
-  { key: "Enter" }, { wait: 1200, shot: "open" },
+  { key: "Enter" }, { wait: 1800, shot: "open" },
+  { key: "Escape" }, { wait: 400 }, { key: "i" }, { wait: 2200, shot: "index" },
+] });
+await scene("phone-flat-renderer", { viewport: phone, query: "?stress=60&renderer=flat", steps: [
+  { wait: 1200, shot: "rest" },
+  { key: "Enter" }, { wait: 1800, shot: "open" },
+] });
+await scene("flat-empty", { viewport: desktop, query: "?renderer=flat", steps: [
+  { wait: 1200, shot: "rest" },
 ] });
 
 await writeFile(path.join(outDir, "review-log.json"), JSON.stringify(log, null, 2));

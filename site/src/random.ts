@@ -1,4 +1,4 @@
-/** Deterministic randomness: the same seed always draws the same logo and the same cover. */
+/** Deterministic randomness: the same seed always draws the same figure. */
 
 export type Rand = () => number;
 

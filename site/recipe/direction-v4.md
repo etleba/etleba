@@ -1,5 +1,7 @@
 # Direction v4: floppy disks, a loading screen, and polish
 
+> Look superseded by [direction-v5.md](direction-v5.md); the object, motion and loading are unchanged.
+
 **Request:** "let's take this time to enhance everything. For one we should add a quick loading section to the page and use that time to cache or whatnot so that the page runs smoothly. Then we can also go ahead and add a lot more polish, and all of the bells and whistles to make it extremely responsive and satisfying to use and interact with. Some surprising, innovative bits and pieces etc. I am actually thinking that we should use floppy disks instead of boxes."
 
 The black metal and Helvetica language of v3 (`direction-v3.md`) stays. Three things change: the object, the way the page loads, and how it feels to handle.

@@ -1,32 +1,57 @@
-/* Black metal and Helvetica (recipe/direction-v3.md). The page is night: white Helvetica on
-   black, on the same grid as before. The only expressive element is the drawn logo, at the
-   top of the stage, on the covers and down the index. An opened case is its insert, a white
-   photocopied sheet. Now and then the whole page flickers to its negative. */
+/* Zufall Stochastic Editorial (recipe/direction-v5.md). The stage is an Editorial Field: warm
+   paper, near-black ink, one family (Inter), flat square controls and one-pixel rules, with no
+   shadows and no glow in the chrome. The one stochastic event in any view is a figure: on the
+   disk labels, on the sheet, and as thumbnails in the index. The index is the one Inverse
+   Chapter. Components below consume the semantic tokens; the raw values are set once, here. */
 
 :root {
-  --page: #000;
-  --ink: #fff;
-  --grey: #8c8c8c;
-  --rule: #333;
-  --wash: #161616;
-  --paper: #fff;
-  --paper-ink: #000;
-  --paper-grey: #666;
-  --paper-rule: #d4d4d4;
-  --paper-wash: #f0f0f0;
+  color-scheme: light;
 
-  --sans: "Helvetica Neue", Helvetica, "Nimbus Sans", "Nimbus Sans L", FreeSans, Arial, sans-serif;
-  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
-  --small: 13px;
-  --body: 15px;
-  --title: 20px;
-  --big: 28px;
+  /* Semantic colour (DESIGN.md). */
+  --surface-page: #F2F1ED;
+  --surface-emphasis: #1A1A1A;
+  --text-primary: #111111;
+  --text-secondary: #555555;
+  --border-quiet: #C9C8C2;
+  --focus-ring: #005E73;
+  --status-error: #8A2D24;
+  --status-success: #2E6540;
+  --status-warning: #D6C846;
+  /* The inverse pairs, for deep field: off-white, brighter secondary text, a visible rule. */
+  --text-inverse: #F2F1ED;
+  --text-inverse-secondary: #B4B3AD;
+  --border-quiet-inverse: #4A4944;
+  /* Aliases by role, so a component names what it is, not which hex it is. */
+  --border-strong: var(--text-primary);
+  --border-control: var(--text-secondary);
+  --border-control-inverse: var(--text-inverse-secondary);
+  --focus-ring-inverse: var(--text-inverse);
 
-  --fade: 160ms ease;
+  --radius-default: 0px;
+  --space-grid: 24px;
+
+  /* One family. The mono stack is for code inside READMEs only. */
+  --font-sans: "Inter Variable", Arial, Helvetica, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  /* Type roles (desktop). */
+  --size-display: 64px;
+  --size-chapter: 48px;
+  --size-heading: 28px;
+  --size-sub: 20px;
+  --size-body: 16px;
+  --size-caption: 12px;
+  --size-micro: 11px;
+
+  /* Motion tokens for CSS chrome. The 3D motion (springs, gates) is its own, recorded exception. */
+  --motion-fast: 120ms;
+  --motion-state: 180ms;
+  --motion-reveal: 260ms;
+  --motion-chapter: 420ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
 
   /* One grid: twelve columns on wide screens, four on narrow ones. */
   --margin: clamp(16px, 2.25vw, 32px);
-  --gutter: clamp(12px, 1.7vw, 24px);
+  --gutter: clamp(16px, 1.7vw, 24px);
   --cols: 12;
   --spread-w: min(760px, 54vw);
 }
@@ -40,20 +65,20 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  background: var(--page);
+  background: var(--surface-page);
 }
 
 body {
   margin: 0;
-  background: var(--page);
-  color: var(--ink);
-  font: 400 var(--body) / 1.45 var(--sans);
+  background: var(--surface-page);
+  color: var(--text-primary);
+  font: 400 var(--size-body) / 1.5 var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 
 ::selection {
-  background: var(--ink);
-  color: var(--page);
+  background: var(--text-primary);
+  color: var(--surface-page);
 }
 
 button,
@@ -67,6 +92,7 @@ button {
   cursor: pointer;
   background: none;
   border: 0;
+  border-radius: var(--radius-default);
   padding: 0;
 }
 
@@ -75,10 +101,10 @@ a {
 }
 
 kbd {
-  font: 400 0.85em/1 var(--mono);
-  border: 1px solid #636363;
-  border-radius: 3px;
-  padding: 1px 4px;
+  font: 500 var(--size-caption) / 1 var(--font-sans);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-default);
+  padding: 2px 5px;
 }
 
 h1,
@@ -104,23 +130,23 @@ h3 {
   left: var(--margin);
   top: -60px;
   z-index: 50;
-  background: var(--ink);
-  color: var(--page);
-  padding: 10px 14px;
-  font-size: var(--small);
+  background: var(--surface-emphasis);
+  color: var(--text-inverse);
+  padding: 12px 16px;
+  font-size: var(--size-body);
 }
 .skip:focus {
   top: var(--margin);
 }
 
+/* Focus: a two-pixel outline with offset, on paper and on deep field. */
 :focus-visible {
-  outline: 2px solid var(--ink);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
-
-/* The flicker (src/ui/flicker.ts): the whole page as its own negative, for a few frames. */
-html.is-inverted {
-  filter: invert(1);
+.index :focus-visible,
+.skip:focus-visible {
+  outline-color: var(--focus-ring-inverse);
 }
 
 /* ---------- stage ---------- */
@@ -148,8 +174,6 @@ html.is-inverted {
   position: absolute;
   inset: 0;
   z-index: 2;
-  /* A faint pool of light behind the presented disk, so its black edge reads against the black. */
-  background: radial-gradient(ellipse 34% 30% at 50% var(--glow-y, 56%), rgb(255 255 255 / 0.07), rgb(255 255 255 / 0) 100%);
 }
 .stage__canvas {
   display: block;
@@ -169,7 +193,7 @@ html.is-inverted {
   inset: 0;
 }
 
-/* ---------- the logo: across the top of the stage, behind the case ---------- */
+/* ---------- the title: Inter display over a micro code line, behind the disk ---------- */
 
 .hero {
   position: absolute;
@@ -178,31 +202,45 @@ html.is-inverted {
   top: 80px;
   z-index: 1;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;
+  padding-inline: var(--margin);
   pointer-events: none;
   user-select: none;
 }
-.hero canvas {
-  display: block;
+.titleblock {
+  width: fit-content;
 }
-.hero[data-state="off"] canvas {
+.titleblock__code {
+  margin: 0 0 8px;
+  font: 500 var(--size-micro) / 1.3 var(--font-sans);
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+.titleblock__name {
+  margin: 0;
+  font: 700 var(--title-size, var(--size-display)) / 0.95 var(--font-sans);
+  letter-spacing: -0.025em;
+  overflow-wrap: break-word;
+}
+.hero[data-state="off"] .titleblock {
   opacity: 0;
 }
-/* It opens from its centre line outward, along its own symmetry. */
-.hero[data-state="in"] canvas {
-  animation: logo-open 640ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+/* It opens from its centre line outward: the reveal the page has always used for its title. */
+.hero[data-state="in"] .titleblock {
+  animation: title-open var(--motion-chapter) var(--ease) both;
 }
-.hero[data-state="out"] canvas {
+.hero[data-state="out"] .titleblock {
   opacity: 0;
-  transition: opacity 120ms ease;
+  transition: opacity var(--motion-fast) var(--ease);
 }
-@keyframes logo-open {
+/* The clip box is a little larger than the text box on every side: the display line height is below 1,
+   so descenders (the p and g of "progress") and overhanging letters would be cut off by an exact clip. */
+@keyframes title-open {
   from {
-    clip-path: inset(0 50% 0 50%);
+    clip-path: inset(-0.25em 50% -0.25em 50%);
   }
   to {
-    clip-path: inset(0 0 0 0);
+    clip-path: inset(-0.25em -0.15em -0.25em -0.15em);
   }
 }
 
@@ -216,22 +254,21 @@ html.is-inverted {
   grid-template-columns: subgrid;
   align-items: baseline;
   padding-bottom: 12px;
-  border-bottom: 1px solid var(--rule);
-  font-size: var(--small);
+  border-bottom: 1px solid var(--border-strong);
+  font: 500 var(--size-caption) / 1.3 var(--font-sans);
 }
 .bar__name {
   grid-column: 1 / span 3;
   margin: 0;
-  font-size: var(--small);
-  font-weight: 700;
-  line-height: 1.3;
+  font: 700 var(--size-body) / 1.3 var(--font-sans);
+  letter-spacing: -0.01em;
   white-space: nowrap;
 }
 .bar__line,
 .bar__hint {
   margin: 0;
   line-height: 1.3;
-  color: var(--grey);
+  color: var(--text-secondary);
 }
 .bar__line {
   grid-column: 4 / span 3;
@@ -255,12 +292,20 @@ html.is-inverted {
   line-height: 1.3;
   white-space: nowrap;
   text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--motion-fast) var(--ease);
 }
 .bar__link:hover {
-  text-decoration: underline;
+  border-bottom-color: var(--border-strong);
 }
 .bar__count {
-  color: var(--grey);
+  color: var(--text-secondary);
+}
+/* Where touch is expected, the hit area is 44 pixels high. */
+@media (pointer: coarse) {
+  .bar__link {
+    min-height: 44px;
+  }
 }
 
 /* ---------- the caption: columns one to four, at the foot ---------- */
@@ -275,19 +320,17 @@ html.is-inverted {
 }
 .caption__no {
   margin: 0;
-  font-size: var(--small);
-  color: var(--grey);
+  font: 500 var(--size-caption) / 1.35 var(--font-sans);
+  color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
 }
 .caption__title {
   margin: 4px 0 0;
-  font-size: var(--title);
-  font-weight: 700;
+  font: 600 var(--size-sub) / 1.2 var(--font-sans);
   letter-spacing: -0.01em;
-  line-height: 1.2;
 }
 .caption__desc {
-  margin: 6px 0;
+  margin: 8px 0;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -297,28 +340,42 @@ html.is-inverted {
   display: none;
 }
 .caption__meta {
-  margin: 0 0 4px;
-  font-size: var(--small);
-  color: var(--grey);
-  min-height: 1.45em;
+  margin: 0 0 12px;
+  font: 500 var(--size-caption) / 1.35 var(--font-sans);
+  color: var(--text-secondary);
+  min-height: 1.35em;
 }
+/* A flat action: paper, a one-pixel rule, local inversion when pressed. */
 .caption__open {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
   min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--border-control);
+  transition: border-color var(--motion-fast) var(--ease);
 }
-.caption__label {
-  text-decoration: underline;
-  text-underline-offset: 3px;
+.caption__open:hover {
+  border-color: var(--border-strong);
+}
+.caption__open:active {
+  background: var(--text-primary);
+  color: var(--surface-page);
+  border-color: var(--text-primary);
 }
 .caption__open kbd {
   margin-left: 2px;
-  color: var(--grey);
+  color: var(--text-secondary);
+}
+.caption__open:active kbd {
+  color: inherit;
 }
 .caption[data-swap="in"] > :is(.caption__title, .caption__desc, .caption__meta) {
-  animation: fade-in var(--fade) both;
+  animation: fade-in var(--motion-state) var(--ease) both;
 }
 .caption[data-swap="out"] > :is(.caption__title, .caption__desc, .caption__meta) {
   opacity: 0;
-  transition: opacity 120ms ease;
+  transition: opacity var(--motion-fast) var(--ease);
 }
 @keyframes fade-in {
   from {
@@ -350,8 +407,8 @@ html.is-inverted {
   display: none;
 }
 .turn__dir {
-  font-size: var(--small);
-  color: var(--grey);
+  font: 500 var(--size-caption) / 1.35 var(--font-sans);
+  color: var(--text-secondary);
 }
 [data-prev] .turn__dir::before {
   content: "← ";
@@ -361,24 +418,31 @@ html.is-inverted {
 }
 .turn__name {
   max-width: 24ch;
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--motion-fast) var(--ease);
 }
 .turn__btn:hover .turn__name {
-  text-decoration: underline;
+  border-bottom-color: var(--border-strong);
 }
 
-/* ---------- the index: a tape trader's list ---------- */
+/* ---------- the index: the one Inverse Chapter, a Coded Index ---------- */
 
 .index {
   position: fixed;
   inset: 0;
   z-index: 30;
-  background: var(--page);
+  background: var(--surface-emphasis);
+  color: var(--text-inverse);
+}
+.index ::selection {
+  background: var(--text-inverse);
+  color: var(--surface-emphasis);
 }
 .index[data-phase="in"] {
-  animation: fade-in var(--fade) both;
+  animation: fade-in var(--motion-state) var(--ease) both;
 }
 .index[data-phase="out"] {
-  animation: fade-out 120ms ease both;
+  animation: fade-out var(--motion-fast) var(--ease) both;
 }
 @keyframes fade-out {
   to {
@@ -390,7 +454,7 @@ html.is-inverted {
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 0 var(--margin) var(--margin);
-  scrollbar-color: var(--rule) var(--page);
+  scrollbar-color: var(--border-quiet-inverse) var(--surface-emphasis);
 }
 .index__head {
   position: sticky;
@@ -400,67 +464,73 @@ html.is-inverted {
   grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
   column-gap: var(--gutter);
   align-items: center;
-  padding: var(--margin) 0 12px;
-  background: var(--page);
-  border-bottom: 1px solid var(--ink);
-  font-size: var(--small);
+  padding: var(--margin) 0 16px;
+  background: var(--surface-emphasis);
+  border-bottom: 1px solid var(--text-inverse);
+  font: 500 var(--size-caption) / 1.3 var(--font-sans);
 }
 .index__title {
   grid-column: 1 / span 3;
   margin: 0;
-  font-size: var(--title);
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  line-height: 1.2;
+  font: 700 var(--size-chapter) / 1 var(--font-sans);
+  letter-spacing: -0.03em;
 }
 .index__tally {
   grid-column: 4 / span 2;
   margin: 0;
-  color: var(--grey);
+  color: var(--text-inverse-secondary);
 }
 .index__find {
   grid-column: 6 / span 3;
 }
 .index__find input {
   width: 100%;
-  min-height: 36px;
-  padding: 0 8px;
-  background: var(--page);
-  border: 1px solid #636363;
-  border-radius: 0;
+  min-height: 44px;
+  padding: 0 12px;
+  background: var(--surface-emphasis);
+  border: 1px solid var(--border-control-inverse);
+  border-radius: var(--radius-default);
+  font-size: var(--size-body);
+  transition: border-color var(--motion-fast) var(--ease);
 }
 .index__find input:focus {
-  border-color: var(--ink);
-  outline: none;
+  border-color: var(--text-inverse);
 }
 .index__find input::placeholder {
-  color: var(--grey);
+  color: var(--text-inverse-secondary);
 }
 .index__order {
   grid-column: 9 / span 3;
   display: flex;
-  gap: 14px;
+  gap: 16px;
   justify-content: flex-end;
 }
 .index__order button,
 .index__close {
   min-height: 44px;
-  color: var(--grey);
+  color: var(--text-inverse-secondary);
+  border-bottom: 1px solid transparent;
+  transition: color var(--motion-fast) var(--ease), border-color var(--motion-fast) var(--ease);
 }
+/* Selected: bold, and a solid rule. */
 .index__order button[aria-pressed="true"] {
-  color: var(--ink);
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  color: var(--text-inverse);
+  font-weight: 700;
+  border-bottom-color: var(--text-inverse);
 }
 .index__order button:hover,
 .index__close:hover {
-  color: var(--ink);
+  color: var(--text-inverse);
+  border-bottom-color: var(--text-inverse);
 }
 .index__close {
   grid-column: 12;
   justify-self: end;
-  color: var(--ink);
+  color: var(--text-inverse);
   white-space: nowrap;
+}
+.index kbd {
+  border-color: var(--border-control-inverse);
 }
 
 .tracklist {
@@ -477,72 +547,110 @@ html.is-inverted {
   column-gap: var(--gutter);
   align-items: center;
   min-height: 72px;
-  /* The row's ground runs a little past the text, so a selected row's negative has a margin. */
+  /* The row's ground runs a little past the text, so the selected row's inversion has a margin. */
   margin: 0 -10px;
   padding: 10px;
-  border-bottom: 1px solid var(--rule);
+  border-bottom: 1px solid var(--border-quiet-inverse);
   cursor: pointer;
 }
 .track__no {
   grid-column: 1;
-  font-size: var(--small);
-  color: var(--grey);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 500 var(--size-caption) / 1 var(--font-sans);
+  color: var(--text-inverse-secondary);
   font-variant-numeric: tabular-nums;
 }
-.track__logo {
-  grid-column: 2 / span 3;
+/* A dot, not a corner: the marker for the current row. */
+.track__dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.track__figure {
+  grid-column: 2 / span 2;
   height: 52px;
   display: flex;
   align-items: center;
-  overflow: hidden;
 }
-.track__logo canvas {
+.track__figure canvas {
   display: block;
-  max-width: 100%;
-  object-fit: contain;
-  object-position: left center;
+  width: 96px;
+  height: 52px;
+}
+.track__label {
+  grid-column: 4 / span 6;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  min-width: 0;
 }
 .track__name {
-  grid-column: 5 / span 5;
+  flex: 0 1 auto;
+  font-weight: 500;
   overflow-wrap: anywhere;
+}
+/* The dotted leader from the name to the language and year; a hover or selection makes it solid. */
+.track__leader {
+  flex: 1 1 24px;
+  align-self: flex-end;
+  margin-bottom: 6px;
+  border-bottom: 1px dotted var(--border-control-inverse);
 }
 .track__meta {
   grid-column: 10 / -1;
   justify-self: end;
   display: flex;
   gap: 16px;
-  font-size: var(--small);
-  color: var(--grey);
+  font: 500 var(--size-caption) / 1.3 var(--font-sans);
+  color: var(--text-inverse-secondary);
+}
+.track:hover .track__leader {
+  border-bottom-style: solid;
+  border-bottom-color: var(--text-inverse);
 }
 .track:hover .track__name {
   text-decoration: underline;
+  text-underline-offset: 3px;
 }
-/* The current row is printed in negative. */
+/* The current row: local inversion, a filled dot, and bold. */
 .track[aria-selected="true"] {
-  background: var(--ink);
-  color: var(--page);
+  background: var(--surface-page);
+  color: var(--text-primary);
 }
 .track[aria-selected="true"] :is(.track__no, .track__meta) {
-  color: var(--page);
+  color: var(--text-secondary);
 }
-.track[aria-selected="true"] .track__logo canvas {
+.track[aria-selected="true"] .track__dot {
+  background: var(--text-primary);
+}
+.track[aria-selected="true"] .track__name {
+  font-weight: 700;
+}
+.track[aria-selected="true"] .track__leader {
+  border-bottom-color: var(--text-secondary);
+}
+/* The figure is off-white on the deep field; on the selected row's paper it inverts. */
+.track[aria-selected="true"] .track__figure canvas {
   filter: invert(1);
 }
 .index__empty {
   margin: 0;
   padding: 24px 0;
-  color: var(--grey);
+  color: var(--text-inverse-secondary);
 }
 .index__foot {
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  padding-top: 20px;
-  font-size: var(--small);
-  color: var(--grey);
+  padding-top: 24px;
+  font: 500 var(--size-caption) / 1.35 var(--font-sans);
+  color: var(--text-inverse-secondary);
 }
 
-/* ---------- spread: the open case's insert, a photocopied sheet ---------- */
+/* ---------- spread: the open disk's sheet, on paper ---------- */
 
 .spread {
   position: fixed;
@@ -551,31 +659,15 @@ html.is-inverted {
   right: 0;
   bottom: 0;
   width: var(--spread-w);
-  background: var(--paper);
-  color: var(--paper-ink);
-}
-/* Toner dust over the whole sheet. */
-.spread::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  opacity: 0.07;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1.4 -.55'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-}
-.spread ::selection {
-  background: var(--paper-ink);
-  color: var(--paper);
-}
-.spread :focus-visible {
-  outline-color: var(--paper-ink);
+  background: var(--surface-page);
+  color: var(--text-primary);
+  border-left: 1px solid var(--border-strong);
 }
 .spread[data-phase="in"] {
-  animation: spread-in 220ms ease-out both;
+  animation: spread-in var(--motion-reveal) var(--ease) both;
 }
 .spread[data-phase="out"] {
-  animation: spread-out 180ms ease-in both;
+  animation: spread-out var(--motion-state) var(--ease) both;
 }
 @keyframes spread-in {
   from {
@@ -592,46 +684,64 @@ html.is-inverted {
   height: 100%;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 0 var(--gutter);
+  padding: 0 var(--space-grid);
 }
 .spread__head {
-  padding: var(--margin) 0 20px;
-  border-bottom: 1px solid var(--paper-rule);
+  padding: var(--margin) 0 24px;
+  border-bottom: 1px solid var(--border-quiet);
 }
 .spread__bar {
   display: flex;
   align-items: center;
-  gap: 14px;
-  font-size: var(--small);
+  gap: 16px;
+  font: 500 var(--size-caption) / 1.3 var(--font-sans);
 }
 .spread__no {
-  color: var(--paper-grey);
+  color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
 }
 .spread__close {
   margin-left: auto;
   min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--border-control);
+  transition: border-color var(--motion-fast) var(--ease);
 }
 .spread__close:hover {
-  text-decoration: underline;
+  border-color: var(--border-strong);
 }
-.spread__close kbd {
-  border-color: var(--paper-rule);
+.spread__close:active {
+  background: var(--text-primary);
+  color: var(--surface-page);
+  border-color: var(--text-primary);
 }
-.spread__logo {
-  margin-top: 8px;
-  display: flex;
-  justify-content: center;
+.spread__close:active kbd {
+  border-color: currentColor;
 }
-.spread__logo canvas {
+/* The figure plate: a hard-cropped field between two rules, and a caption that says what it encodes. */
+.spread__figure {
+  margin: 8px 0 0;
+}
+.spread__plate {
+  height: clamp(120px, 22vh, 190px);
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border-quiet);
+}
+.spread__plate canvas {
   display: block;
+  width: 100%;
+  height: 100%;
+}
+.spread__caption {
+  margin-top: 8px;
+  max-width: 70ch;
+  font: 500 var(--size-caption) / 1.35 var(--font-sans);
+  color: var(--text-secondary);
 }
 .spread__title {
-  margin: 18px 0 0;
-  font-size: var(--big);
-  font-weight: 700;
-  letter-spacing: -0.015em;
-  line-height: 1.1;
+  margin: 24px 0 0;
+  font: 650 var(--size-heading) / 1.1 var(--font-sans);
+  letter-spacing: -0.02em;
   overflow-wrap: anywhere;
 }
 .spread__protocol {
@@ -639,48 +749,49 @@ html.is-inverted {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--gutter);
   margin: 0;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--paper-rule);
-  font-size: var(--small);
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border-quiet);
 }
 .spread__protocol dt {
-  color: var(--paper-grey);
+  font: 500 var(--size-caption) / 1.35 var(--font-sans);
+  color: var(--text-secondary);
 }
 .spread__protocol dd {
-  margin: 2px 0 0;
+  margin: 4px 0 0;
 }
 .spread__standfirst {
-  margin: 20px 0 0;
-  max-width: 60ch;
-  font-size: 17px;
-  line-height: 1.4;
+  margin: 24px 0 0;
+  max-width: 62ch;
 }
 .spread__links {
   margin: 0;
-  padding: 12px 0 20px;
-  border-bottom: 1px solid var(--paper-rule);
+  padding: 12px 0 24px;
+  border-bottom: 1px solid var(--border-quiet);
 }
 .spread__link {
   display: inline-block;
   padding: 12px 0;
   text-underline-offset: 3px;
 }
+.spread__link:hover {
+  text-decoration-thickness: 2px;
+}
 .spread__body {
   padding: 24px 0 72px;
 }
 .spread__state {
   margin: 0;
-  color: var(--paper-grey);
+  color: var(--text-secondary);
 }
 .spread__state--error {
-  color: var(--paper-ink);
+  color: var(--status-error);
 }
 
-/* README: plain Helvetica reading text on the sheet. */
+/* README: Inter reading text on the sheet. Code keeps a mono stack. */
 .readme {
   max-width: 66ch;
-  font-size: var(--body);
-  line-height: 1.55;
+  font-size: var(--size-body);
+  line-height: 1.5;
   overflow-wrap: break-word;
 }
 .readme > :first-child {
@@ -688,21 +799,22 @@ html.is-inverted {
 }
 .readme :is(h1, h2, h3, h4, h5, h6) {
   margin: 1.6em 0 0.5em;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  line-height: 1.25;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
 }
 .readme h1 {
-  font-size: 24px;
+  font-size: var(--size-heading);
 }
 .readme h2 {
-  font-size: 20px;
+  font-size: var(--size-sub);
 }
 .readme h3 {
-  font-size: 17px;
+  font-size: var(--size-body);
+  font-weight: 700;
 }
 .readme :is(h4, h5, h6) {
-  font-size: var(--body);
+  font-size: var(--size-body);
 }
 .readme p,
 .readme ul,
@@ -720,27 +832,27 @@ html.is-inverted {
   text-underline-offset: 3px;
 }
 .readme code {
-  font: 400 0.88em/1.4 var(--mono);
-  background: var(--paper-wash);
-  padding: 0.1em 0.3em;
+  font: 400 0.875em / 1.4 var(--font-mono);
+  border: 1px solid var(--border-quiet);
+  padding: 0.05em 0.3em;
 }
 .readme pre {
   margin: 0 0 1.2em;
-  padding: 14px 16px;
+  padding: 16px;
   overflow-x: auto;
-  background: var(--paper-ink);
-  color: var(--paper);
+  background: var(--surface-emphasis);
+  color: var(--text-inverse);
 }
 .readme pre code {
-  background: none;
+  border: 0;
   padding: 0;
   font-size: 13px;
   line-height: 1.55;
 }
 .readme blockquote {
   margin: 0 0 1em;
-  padding-left: 14px;
-  border-left: 2px solid var(--paper-ink);
+  padding-left: 16px;
+  border-left: 1px solid var(--border-strong);
 }
 .readme img {
   max-width: 100%;
@@ -748,7 +860,7 @@ html.is-inverted {
 }
 .readme hr {
   border: 0;
-  border-top: 1px solid var(--paper-rule);
+  border-top: 1px solid var(--border-quiet);
   margin: 2em 0;
 }
 .readme table {
@@ -756,17 +868,17 @@ html.is-inverted {
   overflow-x: auto;
   border-collapse: collapse;
   margin: 0 0 1.2em;
-  font-size: var(--small);
+  font-size: var(--size-caption);
 }
 .readme :is(th, td) {
-  border-bottom: 1px solid var(--paper-rule);
-  padding: 6px 12px 6px 0;
+  border-bottom: 1px solid var(--border-quiet);
+  padding: 8px 12px 8px 0;
   text-align: left;
   vertical-align: top;
 }
 .readme th {
   font-weight: 700;
-  border-bottom-color: var(--paper-ink);
+  border-bottom-color: var(--border-strong);
 }
 
 .noscript {
@@ -776,15 +888,15 @@ html.is-inverted {
   display: grid;
   place-items: center;
   padding: var(--margin);
-  background: var(--page);
+  background: var(--surface-page);
 }
 
-/* While open, the spread carries the words; the caption and neighbours step out of the way. */
+/* While open, the sheet carries the words; the caption and neighbours step out of the way. */
 @media (min-width: 1024px) {
   body[data-state="open"] :is(.caption, .turn) {
     opacity: 0;
     pointer-events: none;
-    transition: opacity 120ms ease;
+    transition: opacity var(--motion-fast) var(--ease);
   }
 }
 body[data-state="loading"] :is(.caption__open, .turn) {
@@ -797,6 +909,11 @@ body[data-state="loading"] :is(.caption__open, .turn) {
   :root {
     --cols: 4;
     --field-h: max(540px, 76svh);
+    --size-display: 44px;
+    --size-chapter: 36px;
+    --size-heading: 24px;
+    --size-sub: 18px;
+    --size-micro: 12px;
   }
   .stage {
     height: auto;
@@ -828,7 +945,7 @@ body[data-state="loading"] :is(.caption__open, .turn) {
   }
   .bar__nav {
     grid-column: 3 / -1;
-    gap: 14px;
+    gap: 16px;
   }
   .caption {
     grid-row: 2;
@@ -844,7 +961,7 @@ body[data-state="loading"] :is(.caption__open, .turn) {
     align-self: start;
     margin-top: 16px;
     padding-top: 12px;
-    border-top: 1px solid var(--rule);
+    border-top: 1px solid var(--border-quiet);
     grid-template-columns: 1fr 1fr;
     text-align: left;
   }
@@ -876,24 +993,38 @@ body[data-state="loading"] :is(.caption__open, .turn) {
   .index__order {
     justify-content: flex-start;
   }
+  /* The coded hierarchy as a linear list: number, figure, then name over language and year. The leader gives way. */
   .track {
-    row-gap: 4px;
+    grid-template-columns: auto 96px minmax(0, 1fr);
+    column-gap: 12px;
+    row-gap: 2px;
   }
-  .track__logo {
-    grid-column: 2 / -1;
+  .track__no {
+    grid-column: 1;
+    grid-row: 1 / span 2;
   }
-  .track__name {
-    grid-column: 2 / -1;
+  .track__figure {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+  .track__label {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  .track__leader {
+    display: none;
   }
   .track__meta {
-    grid-column: 2 / -1;
+    grid-column: 3;
+    grid-row: 2;
     justify-self: start;
   }
   .spread {
     width: 100%;
+    border-left: 0;
   }
-  .spread__title {
-    font-size: 24px;
+  .spread__plate {
+    height: clamp(96px, 20vh, 150px);
   }
   .spread__protocol {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -931,8 +1062,8 @@ body[data-motion="reduced"] *::after {
   position: fixed;
   inset: 0;
   z-index: 45;
-  background: var(--page);
-  transition: background-color 420ms ease;
+  background: var(--surface-page);
+  transition: background-color var(--motion-chapter) var(--ease);
 }
 .boot__frame {
   height: 100%;
@@ -942,98 +1073,91 @@ body[data-motion="reduced"] *::after {
 }
 .boot__name {
   margin: 0;
-  font-size: var(--small);
-  font-weight: 700;
+  font: 700 var(--size-body) / 1.3 var(--font-sans);
+  letter-spacing: -0.01em;
 }
-.boot__logo {
+.boot__title {
   align-self: center;
-  justify-self: center;
+  justify-self: start;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;
   will-change: transform;
 }
-.boot__logo canvas {
-  display: block;
+.boot[data-title="in"] .boot__title .titleblock {
+  animation: title-open var(--motion-chapter) var(--ease) both;
 }
-.boot[data-logo="in"] .boot__logo canvas {
-  animation: logo-open 640ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+/* Stochastic Progress: a labelled point for each disk, written in as the disk is. It shows only
+   after a short delay, and the status wording and the count are there from the first paint. */
+.boot__progress {
+  display: grid;
+  gap: 12px;
 }
-.boot__disks {
+.boot__points {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
-  margin-bottom: 12px;
+  align-items: flex-end;
+  gap: 6px 10px;
+  min-height: 44px;
+  padding: 0 0 14px;
+  border-bottom: 1px solid var(--border-strong);
+  animation: fade-in var(--motion-state) var(--ease) 300ms both;
 }
-/* Each disk in the first view, filled as it is written. */
-.boot__disk {
-  position: relative;
-  width: 13px;
-  height: 14px;
-  border: 1px solid #636363;
-  border-radius: 1px;
+.boot__point {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--border-control);
+  transform: translateY(var(--dy, 0px));
 }
-.boot__disk::before {
-  content: "";
-  position: absolute;
-  left: 3px;
-  top: 0;
-  width: 6px;
-  height: 4px;
-  background: #636363;
+.boot__point.is-written {
+  background: var(--text-primary);
+  border-color: var(--text-primary);
+  animation: point-written var(--motion-state) var(--ease);
 }
-.boot__disk.is-written {
-  background: var(--ink);
-  border-color: var(--ink);
-  animation: disk-written 220ms ease-out;
-}
-.boot__disk.is-written::before {
-  background: #8c8c8c;
-}
-@keyframes disk-written {
+@keyframes point-written {
   from {
-    transform: translateY(-3px);
+    opacity: 0.3;
   }
 }
 .boot__line {
   margin: 0;
   display: flex;
   gap: 16px;
-  font-size: var(--small);
-  color: var(--grey);
+  font: 500 var(--size-body) / 1.3 var(--font-sans);
 }
 .boot__count {
   font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
 }
 .boot__skip {
   position: absolute;
   right: var(--margin);
   bottom: var(--margin);
   margin: 0;
-  font-size: var(--small);
-  color: var(--grey);
+  font: 500 var(--size-caption) / 1.35 var(--font-sans);
+  color: var(--text-secondary);
 }
-/* The exit: the words go, the ground clears, the logo travels to its place on the page. */
+/* The exit: the words go, the ground clears, the title travels to its place on the page. */
 .boot[data-phase="out"] {
   background-color: transparent;
   pointer-events: none;
 }
-.boot[data-phase="out"] :is(.boot__name, .boot__disks, .boot__line, .boot__skip) {
+.boot[data-phase="out"] :is(.boot__name, .boot__progress, .boot__skip) {
   opacity: 0;
-  transition: opacity 180ms ease;
+  transition: opacity var(--motion-state) var(--ease);
 }
-/* The page's own logo waits, placed and open, for the boot's to land on it; the chrome follows. */
+/* The page's own title waits, placed and open, for the boot's to land on it; the chrome follows. */
 body[data-boot] .hero {
   visibility: hidden;
 }
-.hero[data-state="shown"] canvas {
+.hero[data-state="shown"] .titleblock {
   opacity: 1;
 }
 body[data-boot] :is(.bar, .caption, .turn) {
   opacity: 0;
 }
 :is(.bar, .caption, .turn) {
-  transition: opacity 320ms ease;
+  transition: opacity var(--motion-reveal) var(--ease);
 }
 
 /* ---------- the pointer's label over the box ---------- */
@@ -1044,10 +1168,9 @@ body[data-boot] :is(.bar, .caption, .turn) {
   top: 0;
   z-index: 25;
   padding: 4px 8px;
-  background: var(--ink);
-  color: var(--page);
-  font-size: 12px;
-  font-weight: 700;
+  background: var(--surface-emphasis);
+  color: var(--text-inverse);
+  font: 600 var(--size-caption) / 1.35 var(--font-sans);
   white-space: nowrap;
   pointer-events: none;
 }
@@ -1061,8 +1184,7 @@ body[data-boot] :is(.bar, .caption, .turn) {
   left: 0;
   width: 22px;
   transform: translateX(-100%);
-  background: #0d0d0d;
-  box-shadow: inset -1px 0 0 #000, inset 1px 0 0 #1f1f1f;
+  background: var(--surface-emphasis);
 }
 .spread__slot {
   position: absolute;
@@ -1071,9 +1193,10 @@ body[data-boot] :is(.bar, .caption, .turn) {
   height: calc(var(--drive-h, 300px) + 12px);
   width: 5px;
   transform: translateX(-50%);
-  background: #000;
-  box-shadow: 0 0 0 1px #262626, inset 1px 0 0 #050505;
+  background: var(--text-primary);
+  outline: 1px solid var(--border-quiet-inverse);
 }
+/* The light: a dot, dim until the disk is read. It blinks and does not glow. */
 .spread__led {
   position: absolute;
   left: 50%;
@@ -1082,11 +1205,10 @@ body[data-boot] :is(.bar, .caption, .turn) {
   height: 6px;
   border-radius: 50%;
   transform: translateX(-50%);
-  background: #2b2b2b;
+  background: var(--border-quiet-inverse);
 }
 body[data-drive="reading"] .spread__led {
-  background: var(--ink);
-  box-shadow: 0 0 6px rgb(255 255 255 / 0.8);
+  background: var(--text-inverse);
   animation: led-read 700ms steps(1) both;
 }
 @keyframes led-read {
@@ -1109,9 +1231,9 @@ body[data-drive="reading"] .spread__led {
   bottom: 24px;
   writing-mode: vertical-rl;
   transform: translateX(-50%) rotate(180deg);
-  font-size: 10px;
+  font: 500 var(--size-micro) / 1 var(--font-sans);
   letter-spacing: 0.08em;
-  color: var(--grey);
+  color: var(--text-inverse-secondary);
 }
 @media (min-width: 1024px) {
   /* The sheet waits for the disk to come out of the drive before it goes. */
@@ -1142,7 +1264,7 @@ body[data-drive="reading"] .spread__led {
   }
 }
 .spread__body[data-read="in"] .readme > * {
-  animation: read-in 260ms ease-out both;
+  animation: read-in var(--motion-reveal) var(--ease) both;
   animation-delay: calc(var(--i, 24) * 22ms);
 }
 @keyframes read-in {

@@ -1,0 +1,899 @@
+{
+  "tool": "figure-check",
+  "status": "PASS",
+  "page_errors": [],
+  "passed": 24,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "determinism: the same entry draws identical pixels twice",
+      "pass": true,
+      "detail": {
+        "entries": 66,
+        "mismatched": 0
+      }
+    },
+    {
+      "name": "determinism: drawing in reverse order gives the same pixels",
+      "pass": true,
+      "detail": {
+        "entries": 66,
+        "mismatched": 0
+      }
+    },
+    {
+      "name": "determinism: different names draw different figures",
+      "pass": true,
+      "detail": {
+        "entries": 66,
+        "distinctFigures": 66
+      }
+    },
+    {
+      "name": "monotonic: radial never loses level, points, dots, ink as stars rise",
+      "pass": true,
+      "detail": {
+        "violations": []
+      }
+    },
+    {
+      "name": "bounded: radial at 511, 1000, 5000 and 100000 stars is one figure",
+      "pass": true,
+      "detail": {
+        "ink": [
+          1422042,
+          1422042,
+          1422042,
+          1422042
+        ]
+      }
+    },
+    {
+      "name": "bounded: radial at 0 stars and at 500 stars both draw a whole figure",
+      "pass": true,
+      "detail": {
+        "ink0": 720330,
+        "ink500": 1422042,
+        "dots0": 144,
+        "dots500": 424
+      }
+    },
+    {
+      "name": "monotonic: branch never loses level, depth, dots, segments, ink as stars rise",
+      "pass": true,
+      "detail": {
+        "violations": []
+      }
+    },
+    {
+      "name": "bounded: branch at 511, 1000, 5000 and 100000 stars is one figure",
+      "pass": true,
+      "detail": {
+        "ink": [
+          3864864,
+          3864864,
+          3864864,
+          3864864
+        ]
+      }
+    },
+    {
+      "name": "bounded: branch at 0 stars and at 500 stars both draw a whole figure",
+      "pass": true,
+      "detail": {
+        "ink0": 3093413,
+        "ink500": 3864864,
+        "dots0": 67,
+        "dots500": 359
+      }
+    },
+    {
+      "name": "monotonic: curve never loses level, points, dots, ink as stars rise",
+      "pass": true,
+      "detail": {
+        "violations": []
+      }
+    },
+    {
+      "name": "bounded: curve at 511, 1000, 5000 and 100000 stars is one figure",
+      "pass": true,
+      "detail": {
+        "ink": [
+          1907359,
+          1907359,
+          1907359,
+          1907359
+        ]
+      }
+    },
+    {
+      "name": "bounded: curve at 0 stars and at 500 stars both draw a whole figure",
+      "pass": true,
+      "detail": {
+        "ink0": 1093143,
+        "ink500": 1907359,
+        "dots0": 144,
+        "dots500": 424
+      }
+    },
+    {
+      "name": "prefix-stable: radial keeps every point it had when stars rise",
+      "pass": true,
+      "detail": {
+        "before": 179,
+        "after": 401
+      }
+    },
+    {
+      "name": "prefix-stable: branch keeps every segment it had when it grows deeper",
+      "pass": true,
+      "detail": {
+        "lowerSegments": 205,
+        "higherSegments": 989
+      }
+    },
+    {
+      "name": "prefix-stable: curve keeps every point it had when stars rise",
+      "pass": true,
+      "detail": {
+        "before": 179,
+        "after": 401
+      }
+    },
+    {
+      "name": "monotonic: more age never lowers the rings",
+      "pass": true,
+      "detail": [
+        {
+          "days": 0,
+          "level": 0,
+          "rings": 2
+        },
+        {
+          "days": 10,
+          "level": 0,
+          "rings": 2
+        },
+        {
+          "days": 30,
+          "level": 1,
+          "rings": 3
+        },
+        {
+          "days": 90,
+          "level": 2,
+          "rings": 4
+        },
+        {
+          "days": 180,
+          "level": 3,
+          "rings": 5
+        },
+        {
+          "days": 365,
+          "level": 4,
+          "rings": 6
+        },
+        {
+          "days": 730,
+          "level": 5,
+          "rings": 7
+        },
+        {
+          "days": 1095,
+          "level": 5,
+          "rings": 7
+        },
+        {
+          "days": 1825,
+          "level": 6,
+          "rings": 8
+        },
+        {
+          "days": 3000,
+          "level": 6,
+          "rings": 8
+        },
+        {
+          "days": 20000,
+          "level": 6,
+          "rings": 8
+        }
+      ]
+    },
+    {
+      "name": "bounded: the age saturates at five years",
+      "pass": true,
+      "detail": [
+        {
+          "days": 1825,
+          "level": 6,
+          "rings": 8
+        },
+        {
+          "days": 3000,
+          "level": 6,
+          "rings": 8
+        },
+        {
+          "days": 20000,
+          "level": 6,
+          "rings": 8
+        }
+      ]
+    },
+    {
+      "name": "monotonic: a longer time since the push never raises the completion",
+      "pass": true,
+      "detail": [
+        {
+          "daysSincePush": 0,
+          "level": 12,
+          "completion": 1
+        },
+        {
+          "daysSincePush": 1,
+          "level": 11,
+          "completion": 0.95
+        },
+        {
+          "daysSincePush": 3,
+          "level": 9,
+          "completion": 0.85
+        },
+        {
+          "daysSincePush": 7,
+          "level": 8,
+          "completion": 0.8
+        },
+        {
+          "daysSincePush": 30,
+          "level": 6,
+          "completion": 0.7
+        },
+        {
+          "daysSincePush": 90,
+          "level": 4,
+          "completion": 0.6
+        },
+        {
+          "daysSincePush": 180,
+          "level": 3,
+          "completion": 0.55
+        },
+        {
+          "daysSincePush": 365,
+          "level": 1,
+          "completion": 0.45
+        },
+        {
+          "daysSincePush": 730,
+          "level": 0,
+          "completion": 0.4
+        },
+        {
+          "daysSincePush": 1500,
+          "level": 0,
+          "completion": 0.4
+        },
+        {
+          "daysSincePush": 20000,
+          "level": 0,
+          "completion": 0.4
+        }
+      ]
+    },
+    {
+      "name": "bounded: the completion is within 40% and 100% and flat beyond two years",
+      "pass": true,
+      "detail": [
+        {
+          "daysSincePush": 730,
+          "level": 0,
+          "completion": 0.4
+        },
+        {
+          "daysSincePush": 1500,
+          "level": 0,
+          "completion": 0.4
+        },
+        {
+          "daysSincePush": 20000,
+          "level": 0,
+          "completion": 0.4
+        }
+      ]
+    },
+    {
+      "name": "cache key: stars, age, push, unit, ink and size each change it",
+      "pass": true,
+      "detail": {
+        "stars": true,
+        "age": true,
+        "push": true,
+        "unit": true,
+        "ink": true,
+        "size": true
+      }
+    },
+    {
+      "name": "cache key: an input that does not change the figure does not change the key",
+      "pass": true,
+      "detail": {
+        "stars 1000 vs 100000 (saturated)": true,
+        "one more star inside a step": true
+      }
+    },
+    {
+      "name": "cache key: ART_VERSION is 5",
+      "pass": true,
+      "detail": {
+        "ART_VERSION": 5
+      }
+    },
+    {
+      "name": "placeholder: fewer points than any real 0-star figure",
+      "pass": true,
+      "detail": {
+        "placeholderDots": [
+          12,
+          14,
+          18,
+          18,
+          12,
+          17
+        ],
+        "realZeroStarDots": [
+          144,
+          43,
+          144,
+          33,
+          144
+        ]
+      }
+    },
+    {
+      "name": "placeholder: less ink than any real 0-star figure",
+      "pass": true,
+      "detail": {
+        "placeholderInk": [
+          90157,
+          98073,
+          112525,
+          112734,
+          90171,
+          108707
+        ],
+        "realZeroStarInk": [
+          595905,
+          1909774,
+          1190285,
+          1539461,
+          558713
+        ]
+      }
+    }
+  ],
+  "stars_ladder": {
+    "radial": [
+      {
+        "stars": 0,
+        "level": 0,
+        "points": 144,
+        "depth": 0,
+        "dots": 144,
+        "segments": 0,
+        "ink": 720330
+      },
+      {
+        "stars": 1,
+        "level": 3,
+        "points": 179,
+        "depth": 0,
+        "dots": 179,
+        "segments": 0,
+        "ink": 818501
+      },
+      {
+        "stars": 2,
+        "level": 4,
+        "points": 191,
+        "depth": 0,
+        "dots": 191,
+        "segments": 0,
+        "ink": 849906
+      },
+      {
+        "stars": 3,
+        "level": 5,
+        "points": 202,
+        "depth": 0,
+        "dots": 202,
+        "segments": 0,
+        "ink": 873634
+      },
+      {
+        "stars": 5,
+        "level": 7,
+        "points": 226,
+        "depth": 0,
+        "dots": 226,
+        "segments": 0,
+        "ink": 939506
+      },
+      {
+        "stars": 8,
+        "level": 8,
+        "points": 237,
+        "depth": 0,
+        "dots": 237,
+        "segments": 0,
+        "ink": 971511
+      },
+      {
+        "stars": 13,
+        "level": 10,
+        "points": 261,
+        "depth": 0,
+        "dots": 261,
+        "segments": 0,
+        "ink": 1041729
+      },
+      {
+        "stars": 21,
+        "level": 12,
+        "points": 284,
+        "depth": 0,
+        "dots": 284,
+        "segments": 0,
+        "ink": 1108826
+      },
+      {
+        "stars": 34,
+        "level": 14,
+        "points": 307,
+        "depth": 0,
+        "dots": 307,
+        "segments": 0,
+        "ink": 1158125
+      },
+      {
+        "stars": 55,
+        "level": 15,
+        "points": 319,
+        "depth": 0,
+        "dots": 319,
+        "segments": 0,
+        "ink": 1183325
+      },
+      {
+        "stars": 89,
+        "level": 17,
+        "points": 342,
+        "depth": 0,
+        "dots": 342,
+        "segments": 0,
+        "ink": 1237533
+      },
+      {
+        "stars": 144,
+        "level": 19,
+        "points": 366,
+        "depth": 0,
+        "dots": 366,
+        "segments": 0,
+        "ink": 1289136
+      },
+      {
+        "stars": 233,
+        "level": 21,
+        "points": 389,
+        "depth": 0,
+        "dots": 389,
+        "segments": 0,
+        "ink": 1333329
+      },
+      {
+        "stars": 377,
+        "level": 23,
+        "points": 412,
+        "depth": 0,
+        "dots": 412,
+        "segments": 0,
+        "ink": 1392524
+      },
+      {
+        "stars": 500,
+        "level": 24,
+        "points": 424,
+        "depth": 0,
+        "dots": 424,
+        "segments": 0,
+        "ink": 1422042
+      },
+      {
+        "stars": 511,
+        "level": 24,
+        "points": 424,
+        "depth": 0,
+        "dots": 424,
+        "segments": 0,
+        "ink": 1422042
+      },
+      {
+        "stars": 1000,
+        "level": 24,
+        "points": 424,
+        "depth": 0,
+        "dots": 424,
+        "segments": 0,
+        "ink": 1422042
+      },
+      {
+        "stars": 5000,
+        "level": 24,
+        "points": 424,
+        "depth": 0,
+        "dots": 424,
+        "segments": 0,
+        "ink": 1422042
+      },
+      {
+        "stars": 100000,
+        "level": 24,
+        "points": 424,
+        "depth": 0,
+        "dots": 424,
+        "segments": 0,
+        "ink": 1422042
+      }
+    ],
+    "branch": [
+      {
+        "stars": 0,
+        "level": 0,
+        "points": 0,
+        "depth": 5,
+        "dots": 67,
+        "segments": 205,
+        "ink": 3093413
+      },
+      {
+        "stars": 1,
+        "level": 3,
+        "points": 0,
+        "depth": 5,
+        "dots": 67,
+        "segments": 205,
+        "ink": 3093413
+      },
+      {
+        "stars": 2,
+        "level": 4,
+        "points": 0,
+        "depth": 6,
+        "dots": 130,
+        "segments": 365,
+        "ink": 3399834
+      },
+      {
+        "stars": 3,
+        "level": 5,
+        "points": 0,
+        "depth": 6,
+        "dots": 130,
+        "segments": 365,
+        "ink": 3399834
+      },
+      {
+        "stars": 5,
+        "level": 7,
+        "points": 0,
+        "depth": 6,
+        "dots": 130,
+        "segments": 365,
+        "ink": 3399834
+      },
+      {
+        "stars": 8,
+        "level": 8,
+        "points": 0,
+        "depth": 6,
+        "dots": 130,
+        "segments": 365,
+        "ink": 3399834
+      },
+      {
+        "stars": 13,
+        "level": 10,
+        "points": 0,
+        "depth": 6,
+        "dots": 130,
+        "segments": 365,
+        "ink": 3399834
+      },
+      {
+        "stars": 21,
+        "level": 12,
+        "points": 0,
+        "depth": 7,
+        "dots": 182,
+        "segments": 493,
+        "ink": 3452527
+      },
+      {
+        "stars": 34,
+        "level": 14,
+        "points": 0,
+        "depth": 7,
+        "dots": 182,
+        "segments": 493,
+        "ink": 3452527
+      },
+      {
+        "stars": 55,
+        "level": 15,
+        "points": 0,
+        "depth": 7,
+        "dots": 182,
+        "segments": 493,
+        "ink": 3452527
+      },
+      {
+        "stars": 89,
+        "level": 17,
+        "points": 0,
+        "depth": 7,
+        "dots": 182,
+        "segments": 493,
+        "ink": 3452527
+      },
+      {
+        "stars": 144,
+        "level": 19,
+        "points": 0,
+        "depth": 7,
+        "dots": 182,
+        "segments": 493,
+        "ink": 3452527
+      },
+      {
+        "stars": 233,
+        "level": 21,
+        "points": 0,
+        "depth": 8,
+        "dots": 359,
+        "segments": 989,
+        "ink": 3864864
+      },
+      {
+        "stars": 377,
+        "level": 23,
+        "points": 0,
+        "depth": 8,
+        "dots": 359,
+        "segments": 989,
+        "ink": 3864864
+      },
+      {
+        "stars": 500,
+        "level": 24,
+        "points": 0,
+        "depth": 8,
+        "dots": 359,
+        "segments": 989,
+        "ink": 3864864
+      },
+      {
+        "stars": 511,
+        "level": 24,
+        "points": 0,
+        "depth": 8,
+        "dots": 359,
+        "segments": 989,
+        "ink": 3864864
+      },
+      {
+        "stars": 1000,
+        "level": 24,
+        "points": 0,
+        "depth": 8,
+        "dots": 359,
+        "segments": 989,
+        "ink": 3864864
+      },
+      {
+        "stars": 5000,
+        "level": 24,
+        "points": 0,
+        "depth": 8,
+        "dots": 359,
+        "segments": 989,
+        "ink": 3864864
+      },
+      {
+        "stars": 100000,
+        "level": 24,
+        "points": 0,
+        "depth": 8,
+        "dots": 359,
+        "segments": 989,
+        "ink": 3864864
+      }
+    ],
+    "curve": [
+      {
+        "stars": 0,
+        "level": 0,
+        "points": 144,
+        "depth": 0,
+        "dots": 144,
+        "segments": 0,
+        "ink": 1093143
+      },
+      {
+        "stars": 1,
+        "level": 3,
+        "points": 179,
+        "depth": 0,
+        "dots": 179,
+        "segments": 0,
+        "ink": 1203688
+      },
+      {
+        "stars": 2,
+        "level": 4,
+        "points": 191,
+        "depth": 0,
+        "dots": 191,
+        "segments": 0,
+        "ink": 1241509
+      },
+      {
+        "stars": 3,
+        "level": 5,
+        "points": 202,
+        "depth": 0,
+        "dots": 202,
+        "segments": 0,
+        "ink": 1280424
+      },
+      {
+        "stars": 5,
+        "level": 7,
+        "points": 226,
+        "depth": 0,
+        "dots": 226,
+        "segments": 0,
+        "ink": 1358298
+      },
+      {
+        "stars": 8,
+        "level": 8,
+        "points": 237,
+        "depth": 0,
+        "dots": 237,
+        "segments": 0,
+        "ink": 1395296
+      },
+      {
+        "stars": 13,
+        "level": 10,
+        "points": 261,
+        "depth": 0,
+        "dots": 261,
+        "segments": 0,
+        "ink": 1467825
+      },
+      {
+        "stars": 21,
+        "level": 12,
+        "points": 284,
+        "depth": 0,
+        "dots": 284,
+        "segments": 0,
+        "ink": 1540071
+      },
+      {
+        "stars": 34,
+        "level": 14,
+        "points": 307,
+        "depth": 0,
+        "dots": 307,
+        "segments": 0,
+        "ink": 1605120
+      },
+      {
+        "stars": 55,
+        "level": 15,
+        "points": 319,
+        "depth": 0,
+        "dots": 319,
+        "segments": 0,
+        "ink": 1637572
+      },
+      {
+        "stars": 89,
+        "level": 17,
+        "points": 342,
+        "depth": 0,
+        "dots": 342,
+        "segments": 0,
+        "ink": 1698246
+      },
+      {
+        "stars": 144,
+        "level": 19,
+        "points": 366,
+        "depth": 0,
+        "dots": 366,
+        "segments": 0,
+        "ink": 1749556
+      },
+      {
+        "stars": 233,
+        "level": 21,
+        "points": 389,
+        "depth": 0,
+        "dots": 389,
+        "segments": 0,
+        "ink": 1819784
+      },
+      {
+        "stars": 377,
+        "level": 23,
+        "points": 412,
+        "depth": 0,
+        "dots": 412,
+        "segments": 0,
+        "ink": 1876438
+      },
+      {
+        "stars": 500,
+        "level": 24,
+        "points": 424,
+        "depth": 0,
+        "dots": 424,
+        "segments": 0,
+        "ink": 1907359
+      },
+      {
+        "stars": 511,
+        "level": 24,
+        "points": 424,
+        "depth": 0,
+        "dots": 424,
+        "segments": 0,
+        "ink": 1907359
+      },
+      {
+        "stars": 1000,
+        "level": 24,
+        "points": 424,
+        "depth": 0,
+        "dots": 424,
+        "segments": 0,
+        "ink": 1907359
+      },
+      {
+        "stars": 5000,
+        "level": 24,
+        "points": 424,
+        "depth": 0,
+        "dots": 424,
+        "segments": 0,
+        "ink": 1907359
+      },
+      {
+        "stars": 100000,
+        "level": 24,
+        "points": 424,
+        "depth": 0,
+        "dots": 424,
+        "segments": 0,
+        "ink": 1907359
+      }
+    ]
+  },
+  "interpretation_boundary": "Runs src/figure.ts in headless Chromium's 2D canvas. Pixel identity holds within one browser build; engines may differ in the last bit of Math.sin and Math.cos, which does not matter for a cache that stores drawn pixels."
+}

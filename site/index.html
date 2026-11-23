@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="color-scheme" content="dark" />
-    <meta name="theme-color" content="#000000" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#F2F1ED" />
     <meta name="description" content="Ethan Lee Barrett. Public work: every repository as a floppy disk in a box. Flip through, take a disk out, put it in the drive to read." />
     <meta property="og:title" content="Ethan Lee Barrett — public work" />
     <meta property="og:description" content="Every repository as a floppy disk in a box. Flip through, take a disk out, put it in the drive to read." />
@@ -18,9 +18,11 @@
     <div class="boot" data-boot-screen>
       <div class="boot__frame">
         <p class="boot__name">Ethan Lee Barrett</p>
-        <div class="boot__logo" data-boot-logo aria-hidden="true"></div>
-        <div class="boot__disks" data-boot-disks aria-hidden="true"></div>
-        <p class="boot__line" role="status" aria-live="polite"><span data-boot-msg>Reading the box</span><span class="boot__count" data-boot-count></span></p>
+        <div class="boot__title" data-boot-title aria-hidden="true"></div>
+        <div class="boot__progress">
+          <div class="boot__points" data-boot-points aria-hidden="true"></div>
+          <p class="boot__line" role="status" aria-live="polite"><span data-boot-msg>Reading the box</span><span class="boot__count" data-boot-count></span></p>
+        </div>
         <p class="boot__skip" aria-hidden="true">Any key or a tap to skip</p>
       </div>
     </div>
@@ -94,7 +96,10 @@
             <span class="spread__no" data-booklet-no></span>
             <button class="spread__close" type="button" data-booklet-close aria-label="Eject the disk">Eject <kbd>Esc</kbd></button>
           </div>
-          <div class="spread__logo" data-booklet-logo aria-hidden="true"></div>
+          <figure class="spread__figure">
+            <div class="spread__plate" data-booklet-figure></div>
+            <figcaption class="spread__caption" data-booklet-caption></figcaption>
+          </figure>
           <h2 class="spread__title" id="spread-title" data-booklet-title></h2>
         </header>
         <dl class="spread__protocol" data-booklet-meta></dl>

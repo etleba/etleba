@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { tokens } from "./tokens";
 
 /**
  * The 3.5" floppy disk and its box (recipe/direction-v4.md, disks), in scene units of ten
@@ -179,7 +180,7 @@ let environment: THREE.Texture | null = null;
 export function applyEnvironment(tex: THREE.Texture): void {
   environment = tex;
   const s = sharedDisk();
-  for (const m of [s.plastic, s.metal, s.mediaMat, s.emboss, boxMaterial]) {
+  for (const m of [s.plastic, s.metal, s.mediaMat, s.emboss, boxMaterial()]) {
     m.envMap = tex;
     m.needsUpdate = true;
   }
@@ -198,7 +199,8 @@ export function buildDisk(): Disk {
   back.position.z = -T / 2 - 0.0024;
   const cap = new THREE.Mesh(s.cap, s.metal);
   shutter.add(front, back, cap);
-  const labelMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.82, metalness: 0, envMapIntensity: 0.3, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 });
+  // Paper, and matte: the sticker's own colour is in its texture (src/labels.ts), so the material is white, rough and takes little of the room.
+  const labelMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95, metalness: 0, envMapIntensity: 0.12, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 });
   const label = new THREE.Mesh(s.label, labelMat);
   // The exposed media, front and back, under the shutter.
   const media = new THREE.Mesh(s.opening, s.mediaMat);
@@ -239,10 +241,16 @@ export interface Box {
   fit(count: number, gap: number): void;
 }
 
-const boxMaterial = new THREE.MeshPhysicalMaterial({ color: 0x0a0a0a, roughness: 0.55, metalness: 0, clearcoat: 0.3, clearcoatRoughness: 0.4, envMapIntensity: 0.05 });
+let boxMaterialCache: THREE.MeshStandardMaterial | null = null;
+
+/** The box: flat matte ink (the --text-primary token), no clearcoat and no reflection, so it stands as a plain dark object on the paper. */
+function boxMaterial(): THREE.MeshStandardMaterial {
+  if (!boxMaterialCache) boxMaterialCache = new THREE.MeshStandardMaterial({ color: new THREE.Color(tokens().ink), roughness: 1, metalness: 0, envMapIntensity: 0 });
+  return boxMaterialCache;
+}
 
 export function buildBox(): Box {
-  const mat = boxMaterial;
+  const mat = boxMaterial();
   const unit = new THREE.BoxGeometry(1, 1, 1);
   const group = new THREE.Group();
   const floor = new THREE.Mesh(unit, mat);

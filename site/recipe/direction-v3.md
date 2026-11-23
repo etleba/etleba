@@ -1,5 +1,7 @@
 # Direction v3: black metal and Helvetica
 
+> Look superseded by [direction-v5.md](direction-v5.md); the object, motion and loading are unchanged.
+
 **Request, after the baseline:**
 - "I'd say something experimental on titles than standard something like helvetica for any body text"
 - "why don't we go for a different style. like old Nokia"

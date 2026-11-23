@@ -1,15 +1,18 @@
-import { type Pic, drawFitted, logoArt, photoArt } from "./art";
+import { type Pic, figureArt } from "./art";
 import type { Entry } from "./catalogue";
-import { logoAspect } from "./logo";
+import { specFor } from "./figure";
+import { font, fontsFor } from "./fonts";
 import { hashSeed } from "./random";
-import { SCENES, type Scene, paperGrain } from "./xerox";
+import { tokens } from "./tokens";
 
 /**
- * Floppy labels (recipe/direction-v4.md, disks). A 3.5" disk's label is a white sticker, so
- * these are what a demo would have had: the logo photocopied in black across the top of the
- * sticker, a photocopied night photograph under it, and a line of small Helvetica at the foot.
- * One disk in five carries a black sticker with the logo alone in white. The label sits below
- * the shutter, so in the box only its top, the logo, shows above the disk in front.
+ * Floppy labels (recipe/direction-v5.md, disks). A 3.5" disk's label is a paper sticker, and
+ * this one is typeset like a figure plate: a hard-cropped field holding the repository's
+ * figure, a one-pixel rule, the name in Inter bold, and a foot line with "Ethan Lee Barrett" and
+ * the code. One disk in five carries the inverse sticker, off-white on deep field. The label
+ * sits below the shutter, so in the box only its top, the figure, shows above the disk in front.
+ * The figure is drawn off the main thread by the art pool; the text is drawn here, once Inter
+ * has loaded.
  */
 
 /** The label's printed area, width over height (72 by 56 mm). */
@@ -17,13 +20,23 @@ export const LABEL_ASPECT = 0.72 / 0.56;
 /** The disk, width over height (90 by 94 mm). */
 export const DISK_ASPECT = 0.9 / 0.94;
 
-const SANS = '"Helvetica Neue", Helvetica, "Nimbus Sans", FreeSans, Arial, sans-serif';
+export type Sticker = "paper" | "inverse";
 
-export type Layout = Scene | "void";
+/** One disk in five is inverse. The seed is the one the covers of version 4 used, so the same disks keep their turn. */
+export function stickerOf(entry: Entry): Sticker {
+  return hashSeed(`cover:${entry.name}`) % 5 === 0 ? "inverse" : "paper";
+}
 
-export function layoutOf(entry: Entry): Layout {
-  const h = hashSeed(`cover:${entry.name}`);
-  return h % 5 === 0 ? "void" : SCENES[(h >>> 3) % SCENES.length];
+/** The label's parts, in device pixels for a label `w` wide. */
+function frame(w: number) {
+  const h = Math.round(w / LABEL_ASPECT);
+  const m = w * 0.05;
+  return {
+    h,
+    m,
+    field: { x: m, y: m, w: Math.round(w - 2 * m), h: Math.round(h * 0.5) },
+    rule: Math.max(1, Math.round(w / 320)),
+  };
 }
 
 function canvas(w: number, h: number): [HTMLCanvasElement, CanvasRenderingContext2D] {
@@ -36,58 +49,86 @@ function canvas(w: number, h: number): [HTMLCanvasElement, CanvasRenderingContex
   return [c, ctx];
 }
 
-/** Logo art sized to fit a box of `w` by `h` device pixels. */
-function logoFor(text: string, w: number, h: number, ink: string, priority: number): Promise<Pic> {
-  return logoArt(text, Math.max(12, Math.min(h, w / logoAspect(text))), ink, priority);
+/** The text a label prints, so the fonts can be requested for exactly those characters. */
+function words(entry: Entry): { name: string; code: string } {
+  return {
+    name: entry.placeholder ? "In progress" : entry.title,
+    code: entry.placeholder ? "In progress" : `${entry.code} · ${entry.year}`,
+  };
 }
 
-/** The pieces a label needs, requested together so the pool can draw them in parallel. */
-function pieces(entry: Entry, w: number, priority: number): { layout: Layout; logo: Promise<Pic>; photo: Promise<Pic> | null } {
-  const h = w / LABEL_ASPECT;
-  const layout = layoutOf(entry);
-  const m = w * 0.045;
-  if (layout === "void") return { layout, logo: logoFor(entry.title, w * 0.84, h * 0.5, "#fff", priority), photo: null };
-  return {
-    layout,
-    logo: logoFor(entry.title, w - 2 * m, h * 0.34 - m, "#000", priority),
-    photo: photoArt(entry.name, layout, w - 2 * m, h * 0.47, priority),
-  };
+function figureFor(entry: Entry, w: number, priority: number): Promise<Pic> {
+  const f = frame(w).field;
+  const t = tokens();
+  return figureArt(specFor(entry, f.w, f.h, stickerOf(entry) === "inverse" ? t.inverse : t.ink), priority);
 }
 
 /** Request a label's art without drawing it (the boot screen warms the cache this way). */
 export function warmLabel(entry: Entry, w: number, priority: number): Promise<unknown> {
-  const p = pieces(entry, w, priority);
-  return Promise.all([p.logo, p.photo]);
+  const t = words(entry);
+  return Promise.all([figureFor(entry, w, priority), fontsFor(`${t.name} ${t.code} Ethan Lee Barrett`)]);
+}
+
+/** Wrap `text` into at most two lines, shrinking from `max` towards `min` px until it fits `width`. */
+function fitName(ctx: CanvasRenderingContext2D, text: string, width: number, max: number, min: number): { size: number; lines: string[] } {
+  for (let size = max; size >= min; size -= 0.5) {
+    ctx.font = font(700, size);
+    if (ctx.measureText(text).width <= width) return { size, lines: [text] };
+    const parts = text.split(" ");
+    for (let cut = 1; cut < parts.length; cut++) {
+      const a = parts.slice(0, cut).join(" ");
+      const b = parts.slice(cut).join(" ");
+      if (ctx.measureText(a).width <= width && ctx.measureText(b).width <= width) return { size, lines: [a, b] };
+    }
+  }
+  // Too long even at the smallest size: two lines, the second cut with an ellipsis.
+  ctx.font = font(700, min);
+  const parts = text.split(" ");
+  let first = "";
+  while (parts.length && ctx.measureText(`${first} ${parts[0]}`.trim()).width <= width) first = `${first} ${parts.shift()}`.trim();
+  let rest = parts.join(" ");
+  while (rest && ctx.measureText(`${rest}…`).width > width) rest = rest.slice(0, -1);
+  return { size: min, lines: first ? [first, rest ? `${rest}…` : ""].filter(Boolean) : [`${text.slice(0, 18)}…`] };
 }
 
 /** The label, `w` device pixels wide. */
 export async function labelCanvas(entry: Entry, w: number, priority = 5): Promise<HTMLCanvasElement> {
-  const h = Math.round(w / LABEL_ASPECT);
-  const p = pieces(entry, w, priority);
-  const [logo, photo] = await Promise.all([p.logo, p.photo]);
-  const [c, ctx] = canvas(w, h);
-  const m = w * 0.045;
-  const dark = p.layout === "void";
-  ctx.fillStyle = dark ? "#000" : "#fff";
-  ctx.fillRect(0, 0, w, h);
-  if (dark) {
-    drawFitted(ctx, logo, w * 0.08, h * 0.16, w * 0.84, h * 0.5);
-  } else {
-    drawFitted(ctx, logo, m, m * 0.8, w - 2 * m, h * 0.34 - m);
-    if (photo) ctx.drawImage(photo, m, h * 0.37, w - 2 * m, h * 0.47);
-  }
-  ctx.fillStyle = dark ? "#fff" : "#000";
-  ctx.font = `400 ${(w * 0.04).toFixed(1)}px ${SANS}`;
+  const f = frame(w);
+  const t = tokens();
+  const text = words(entry);
+  const inverse = stickerOf(entry) === "inverse";
+  const ground = inverse ? t.emphasis : t.page;
+  const ink = inverse ? t.inverse : t.ink;
+  const quiet = inverse ? t.inverseSecondary : t.inkSecondary;
+  const [fig] = await Promise.all([figureFor(entry, w, priority), fontsFor(`${text.name} ${text.code} Ethan Lee Barrett`)]);
+  const [c, ctx] = canvas(w, f.h);
+  ctx.fillStyle = ground;
+  ctx.fillRect(0, 0, w, f.h);
+  // The figure's field: hard-cropped, nothing printed over it.
+  ctx.drawImage(fig, f.field.x, f.field.y, f.field.w, f.field.h);
+  // One rule under the field, the full width of the print.
+  const ruleY = Math.round(f.field.y + f.field.h + w * 0.03);
+  ctx.fillStyle = ink;
+  ctx.fillRect(Math.round(f.m), ruleY, Math.round(w - 2 * f.m), f.rule);
+  // The name, in at most two lines.
+  const name = fitName(ctx, text.name, w - 2 * f.m, w * 0.085, w * 0.055);
+  ctx.fillStyle = ink;
   ctx.textBaseline = "alphabetic";
-  ctx.fillText("Ethan Lee Barrett", m, h - m * 0.9);
+  ctx.font = font(700, name.size);
+  name.lines.forEach((line, i) => ctx.fillText(line, f.m, ruleY + f.rule + w * 0.03 + name.size * 0.86 + i * name.size * 1.08));
+  // The foot: the author, then the code, on one line.
+  const foot = w * 0.04;
+  ctx.fillStyle = quiet;
+  ctx.font = font(500, foot);
+  const baseline = f.h - f.m * 0.8;
+  ctx.fillText("Ethan Lee Barrett", f.m, baseline);
   ctx.textAlign = "right";
-  ctx.fillText(entry.placeholder ? "In progress" : `${entry.language ?? "No language"} ${entry.born}`, w - m, h - m * 0.9);
+  ctx.fillText(text.code, w - f.m, baseline);
   ctx.textAlign = "left";
-  if (!dark) paperGrain(ctx, w, h, entry.name);
   return c;
 }
 
-// ---------- the disk in two dimensions (no-WebGL rack, boot screen) ----------
+// ---------- the disk in two dimensions (no-WebGL box, boot screen) ----------
 
 /** Disk coordinates (metres times ten, origin at the centre, y up) to canvas pixels. */
 function at(w: number, x: number, y: number): [number, number] {
@@ -112,7 +153,10 @@ export function diskOutline(ctx: CanvasRenderingContext2D, w: number): void {
   ctx.closePath();
 }
 
-/** A drawing of the whole disk, front face: body, shutter, label, the arrow and the holes. */
+/**
+ * A drawing of the whole disk, front face: body, shutter, label, the arrow and the holes. The
+ * disk is an object, not chrome: black plastic and steel, as in the box.
+ */
 export async function diskCanvas(entry: Entry, w: number, priority = 5): Promise<HTMLCanvasElement> {
   const h = Math.round(w / DISK_ASPECT);
   const label = await labelCanvas(entry, Math.round(w * 0.8), priority);

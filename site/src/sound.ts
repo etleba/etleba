@@ -187,10 +187,4 @@ export const sound = {
     burst(a, t, { type: "highpass", f: 2500, peak: 0.14, decay: 0.01 });
     tone(a, t, { type: "square", f: 900, peak: 0.02, decay: 0.008 });
   },
-  /** Static under the page flicker. */
-  hiss(): void {
-    const a = audio();
-    if (!a || !gate("hiss", 400)) return;
-    burst(a, a.currentTime, { type: "highpass", f: 3500, peak: 0.05, attack: 0.005, decay: 0.16 });
-  },
 };

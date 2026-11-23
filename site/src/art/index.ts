@@ -1,14 +1,13 @@
-import { logoBucket, logoCanvas } from "../logo";
-import { type Scene, photograph } from "../xerox";
+import { type FigureSpec, figureCanvas } from "../figure";
 import type { AnyCanvas } from "./canvas";
 import { type Job, jobKey } from "./jobs";
 
 /**
- * The art service (recipe/direction-v4.md, loading). Logos and photographs are requested
- * here with a priority; a small pool of workers draws them in priority order, off the main
- * thread, and keeps each drawing in Cache Storage for the next visit. Where workers or
- * OffscreenCanvas are missing, the same generators run on the main thread, one job per
- * macrotask, so the page still yields between them.
+ * The art service (recipe/direction-v4.md, loading; recipe/direction-v5.md, figures). Figures
+ * are requested here with a priority; a small pool of workers draws them in priority order,
+ * off the main thread, and keeps each drawing in Cache Storage for the next visit. Where
+ * workers or OffscreenCanvas are missing, the same generator runs on the main thread, one job
+ * per macrotask, so the page still yields between them.
  */
 
 export type Pic = ImageBitmap | AnyCanvas;
@@ -69,7 +68,7 @@ function startPool(): Slot[] {
 function runHere(p: Pending): void {
   setTimeout(() => {
     try {
-      const pic = p.job.kind === "logo" ? logoCanvas(p.job.text, p.job.height, p.job.ink) : photograph(p.job.seed, p.job.scene, p.job.w, p.job.h);
+      const pic = figureCanvas(p.job);
       stats.drawn++;
       p.resolve(pic);
     } catch (err) {
@@ -127,13 +126,9 @@ function request(job: Job, priority: number): Promise<Pic> {
   return promise;
 }
 
-/** The logo for `text`, `height` device pixels tall, in `ink`. Lower priority runs sooner. */
-export function logoArt(text: string, height: number, ink = "#fff", priority = 5): Promise<Pic> {
-  return request({ kind: "logo", text, height: logoBucket(height), ink }, priority);
-}
-
-export function photoArt(seed: string, scene: Scene, w: number, h: number, priority = 5): Promise<Pic> {
-  return request({ kind: "photo", seed, scene, w: Math.round(w), h: Math.round(h) }, priority);
+/** The figure for `spec`, drawn in its ink on a transparent ground. Lower priority runs sooner. */
+export function figureArt(spec: FigureSpec, priority = 5): Promise<Pic> {
+  return request({ kind: "figure", ...spec }, priority);
 }
 
 /** How many drawings came from the cache and how many were drawn, for the boot screen. */

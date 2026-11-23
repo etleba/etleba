@@ -1,0 +1,1036 @@
+[
+  {
+    "scene": "desktop-boot",
+    "shot": "first-paint",
+    "file": "desktop-boot-01-first-paint.png",
+    "state": "browsing",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "\n      \n        Ethan Lee Barrett\n        No. 60 · PowerShell · 2026drum field 24\n        \n          \n          Reading the box00 / 10\n        \n        Any key or a tap to skip\n      \n    ",
+    "status": ""
+  },
+  {
+    "scene": "desktop-boot",
+    "shot": "title-waiting",
+    "file": "desktop-boot-02-title-waiting.png",
+    "state": "browsing",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "\n      \n        Ethan Lee Barrett\n        No. 60 · PowerShell · 2026drum field 24\n        \n          \n          Reading the box00 / 10\n        \n        Any key or a tap to skip\n      \n    ",
+    "status": ""
+  },
+  {
+    "scene": "desktop-boot",
+    "shot": "points-written-simulated",
+    "file": "desktop-boot-03-points-written-simulated.png",
+    "state": "browsing",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "\n      \n        Ethan Lee Barrett\n        No. 60 · PowerShell · 2026drum field 24\n        \n          \n          Writing drum field 2406 / 10\n        \n        Any key or a tap to skip\n      \n    ",
+    "status": ""
+  },
+  {
+    "scene": "desktop-boot",
+    "shot": "writing",
+    "file": "desktop-boot-04-writing.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "60 / 60. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "desktop-boot",
+    "shot": "writing-later",
+    "file": "desktop-boot-05-writing-later.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "60 / 60. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "desktop-boot",
+    "shot": "after",
+    "file": "desktop-boot-06-after.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "60 / 60. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "desktop-boot",
+    "errors": [
+      "warning: Service Worker registration blocked by Playwright",
+      "warning: [.WebGL-0x8ac00608800]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+      "warning: [.WebGL-0x8ac00608800]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+      "warning: [.WebGL-0x8ac00608800]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+      "warning: [.WebGL-0x8ac00608800]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+    ]
+  },
+  {
+    "scene": "desktop-inspect",
+    "shot": "shutter-peek",
+    "file": "desktop-inspect-01-shutter-peek.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "desktop-inspect",
+    "shot": "back",
+    "file": "desktop-inspect-02-back.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "sequence-insert",
+    "shot": "in-t0150ms",
+    "file": "sequence-insert-01-in-t0150ms.png",
+    "state": "open",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "sequence-insert",
+    "shot": "in-t0300ms",
+    "file": "sequence-insert-02-in-t0300ms.png",
+    "state": "open",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "sequence-insert",
+    "shot": "in-t0450ms",
+    "file": "sequence-insert-03-in-t0450ms.png",
+    "state": "open",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "sequence-insert",
+    "shot": "in-t0600ms",
+    "file": "sequence-insert-04-in-t0600ms.png",
+    "state": "open",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "sequence-insert",
+    "shot": "in-t0750ms",
+    "file": "sequence-insert-05-in-t0750ms.png",
+    "state": "open",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "sequence-insert",
+    "shot": "in-t0900ms",
+    "file": "sequence-insert-06-in-t0900ms.png",
+    "state": "open",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "sequence-insert",
+    "shot": "in-t1050ms",
+    "file": "sequence-insert-07-in-t1050ms.png",
+    "state": "open",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "sequence-insert",
+    "shot": "in-t1200ms",
+    "file": "sequence-insert-08-in-t1200ms.png",
+    "state": "open",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "sequence-insert",
+    "shot": "in-read",
+    "file": "sequence-insert-09-in-read.png",
+    "state": "open",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "sequence-insert",
+    "shot": "out-t0120ms",
+    "file": "sequence-insert-10-out-t0120ms.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "sequence-insert",
+    "shot": "out-t0240ms",
+    "file": "sequence-insert-11-out-t0240ms.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "sequence-insert",
+    "shot": "out-t0360ms",
+    "file": "sequence-insert-12-out-t0360ms.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "sequence-insert",
+    "shot": "out-t0480ms",
+    "file": "sequence-insert-13-out-t0480ms.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "desktop-snapshot",
+    "shot": "arrival",
+    "file": "desktop-snapshot-01-arrival.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "desktop-snapshot",
+    "shot": "settled",
+    "file": "desktop-snapshot-02-settled.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "desktop-snapshot",
+    "shot": "turning",
+    "file": "desktop-snapshot-03-turning.png",
+    "state": "browsing",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "desktop-snapshot",
+    "shot": "settled-after-keys",
+    "file": "desktop-snapshot-04-settled-after-keys.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "03 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "desktop-snapshot",
+    "shot": "open",
+    "file": "desktop-snapshot-05-open.png",
+    "state": "open",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "03 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "desktop-snapshot",
+    "shot": "open-readme",
+    "file": "desktop-snapshot-06-open-readme.png",
+    "state": "open",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "03 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "desktop-snapshot",
+    "shot": "closed",
+    "file": "desktop-snapshot-07-closed.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "03 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "desktop-shadows",
+    "shot": "settled-high",
+    "file": "desktop-shadows-01-settled-high.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "desktop-shadows",
+    "shot": "open-high",
+    "file": "desktop-shadows-02-open-high.png",
+    "state": "open",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "desktop-stress60",
+    "shot": "settled",
+    "file": "desktop-stress60-01-settled.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "60 / 60. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "desktop-stress60",
+    "probe": {
+      "frames": 5,
+      "avg": 299.3400000023841,
+      "max": 480.00000001192075
+    }
+  },
+  {
+    "scene": "desktop-stress60",
+    "shot": "wheel-turning",
+    "file": "desktop-stress60-02-wheel-turning.png",
+    "state": "browsing",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "60 / 60. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "desktop-stress60",
+    "shot": "wheel-settled",
+    "file": "desktop-stress60-03-wheel-settled.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "field drum margin margin 21",
+    "status": "45 / 60. field drum margin margin 21. No description. Lua, updated 21 Sept 2026."
+  },
+  {
+    "scene": "desktop-stress60",
+    "shot": "drag-release",
+    "file": "desktop-stress60-04-drag-release.png",
+    "state": "browsing",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "field drum margin margin 21",
+    "status": "45 / 60. field drum margin margin 21. No description. Lua, updated 21 Sept 2026."
+  },
+  {
+    "scene": "desktop-stress60",
+    "shot": "drag-settled",
+    "file": "desktop-stress60-05-drag-settled.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "quiet margin 19",
+    "status": "35 / 60. quiet margin 19. A quiet for margin, with sources, a validator and a worked example. Shell, updated 19 Sept 2026, 94 stars."
+  },
+  {
+    "scene": "desktop-stress60",
+    "shot": "open",
+    "file": "desktop-stress60-06-open.png",
+    "state": "open",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "quiet margin 19",
+    "status": "35 / 60. quiet margin 19. A quiet for margin, with sources, a validator and a worked example. Shell, updated 19 Sept 2026, 94 stars."
+  },
+  {
+    "scene": "desktop-stress60",
+    "shot": "open-readme",
+    "file": "desktop-stress60-07-open-readme.png",
+    "state": "open",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "quiet margin 19",
+    "status": "35 / 60. quiet margin 19. A quiet for margin, with sources, a validator and a worked example. Shell, updated 19 Sept 2026, 94 stars."
+  },
+  {
+    "scene": "desktop-stress60",
+    "shot": "index",
+    "file": "desktop-stress60-08-index.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "quiet margin 19",
+    "status": "35 / 60. quiet margin 19. A quiet for margin, with sources, a validator and a worked example. Shell, updated 19 Sept 2026, 94 stars."
+  },
+  {
+    "scene": "desktop-empty",
+    "shot": "settled",
+    "file": "desktop-empty-01-settled.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "desktop-empty",
+    "shot": "flipped",
+    "file": "desktop-empty-02-flipped.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "desktop-empty",
+    "shot": "open",
+    "file": "desktop-empty-03-open.png",
+    "state": "open",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "desktop-empty",
+    "shot": "index",
+    "file": "desktop-empty-04-index.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "recon-gray",
+    "shot": "settled",
+    "file": "recon-gray-01-settled.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "60 / 60. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "recon-gray",
+    "shot": "open",
+    "file": "recon-gray-02-open.png",
+    "state": "open",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "60 / 60. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "recon-gray",
+    "shot": "index",
+    "file": "recon-gray-03-index.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "60 / 60. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "recon-noimages",
+    "shot": "settled",
+    "file": "recon-noimages-01-settled.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "60 / 60. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "recon-noimages",
+    "shot": "open",
+    "file": "recon-noimages-02-open.png",
+    "state": "open",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "60 / 60. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "recon-noimages",
+    "shot": "index",
+    "file": "recon-noimages-03-index.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "60 / 60. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "desktop-index",
+    "shot": "index-hover",
+    "file": "desktop-index-01-index-hover.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "desktop-index",
+    "shot": "after-choose",
+    "file": "desktop-index-02-after-choose.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "04 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "desktop-filter",
+    "shot": "index-filtered",
+    "file": "desktop-filter-01-index-filtered.png",
+    "state": "browsing",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "60 / 60. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "desktop-filter",
+    "shot": "filtered",
+    "file": "desktop-filter-02-filtered.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "study signal orbit atlas 01",
+    "status": "01 / 12. study signal orbit atlas 01. A study for signal, with sources, a validator and a worked example. Python, updated 1 Sept 2026."
+  },
+  {
+    "scene": "sequence-close-on-turn",
+    "shot": "t0150ms",
+    "file": "sequence-close-on-turn-01-t0150ms.png",
+    "state": "browsing",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "sequence-close-on-turn",
+    "shot": "t0300ms",
+    "file": "sequence-close-on-turn-02-t0300ms.png",
+    "state": "browsing",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "sequence-close-on-turn",
+    "shot": "t0450ms",
+    "file": "sequence-close-on-turn-03-t0450ms.png",
+    "state": "browsing",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "sequence-close-on-turn",
+    "shot": "t0600ms",
+    "file": "sequence-close-on-turn-04-t0600ms.png",
+    "state": "browsing",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "sequence-close-on-turn",
+    "shot": "t0750ms",
+    "file": "sequence-close-on-turn-05-t0750ms.png",
+    "state": "browsing",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "sequence-close-on-turn",
+    "shot": "t0900ms",
+    "file": "sequence-close-on-turn-06-t0900ms.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "05 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "sequence-close-on-turn",
+    "shot": "t1050ms",
+    "file": "sequence-close-on-turn-07-t1050ms.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "05 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "sequence-close-on-turn",
+    "shot": "t1200ms",
+    "file": "sequence-close-on-turn-08-t1200ms.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "05 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "sequence-close-on-turn",
+    "shot": "t1350ms",
+    "file": "sequence-close-on-turn-09-t1350ms.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "05 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "sequence-close-on-turn",
+    "shot": "t1500ms",
+    "file": "sequence-close-on-turn-10-t1500ms.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "05 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "sequence-close-on-turn",
+    "shot": "t1650ms",
+    "file": "sequence-close-on-turn-11-t1650ms.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "05 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "sequence-close-on-turn",
+    "shot": "t1800ms",
+    "file": "sequence-close-on-turn-12-t1800ms.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "05 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "sequence-reflow",
+    "shot": "t0100ms",
+    "file": "sequence-reflow-01-t0100ms.png",
+    "state": "browsing",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "24 / 24. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "sequence-reflow",
+    "shot": "t0200ms",
+    "file": "sequence-reflow-02-t0200ms.png",
+    "state": "browsing",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "24 / 24. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "sequence-reflow",
+    "shot": "t0300ms",
+    "file": "sequence-reflow-03-t0300ms.png",
+    "state": "browsing",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "24 / 24. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "sequence-reflow",
+    "shot": "t0400ms",
+    "file": "sequence-reflow-04-t0400ms.png",
+    "state": "browsing",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "24 / 24. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "sequence-reflow",
+    "shot": "t0500ms",
+    "file": "sequence-reflow-05-t0500ms.png",
+    "state": "browsing",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "24 / 24. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "sequence-reflow",
+    "shot": "t0600ms",
+    "file": "sequence-reflow-06-t0600ms.png",
+    "state": "browsing",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "24 / 24. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "sequence-reflow",
+    "shot": "t0700ms",
+    "file": "sequence-reflow-07-t0700ms.png",
+    "state": "browsing",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "24 / 24. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "sequence-reflow",
+    "shot": "t0800ms",
+    "file": "sequence-reflow-08-t0800ms.png",
+    "state": "browsing",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "24 / 24. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "sequence-reflow",
+    "shot": "t2000ms",
+    "file": "sequence-reflow-09-t2000ms.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "04 / 24. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "phone-stress60",
+    "shot": "settled",
+    "file": "phone-stress60-01-settled.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "60 / 60. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "phone-stress60",
+    "shot": "open",
+    "file": "phone-stress60-02-open.png",
+    "state": "open",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "60 / 60. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "phone-stress60",
+    "shot": "open-readme",
+    "file": "phone-stress60-03-open-readme.png",
+    "state": "open",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "60 / 60. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "phone-stress60",
+    "shot": "index",
+    "file": "phone-stress60-04-index.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "60 / 60. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "phone-empty",
+    "shot": "settled",
+    "file": "phone-empty-01-settled.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "phone-empty",
+    "shot": "open",
+    "file": "phone-empty-02-open.png",
+    "state": "open",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "phone-empty",
+    "shot": "index",
+    "file": "phone-empty-03-index.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "phone-boot",
+    "shot": "first-paint",
+    "file": "phone-boot-01-first-paint.png",
+    "state": "browsing",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "\n      \n        Ethan Lee Barrett\n        No. 60 · PowerShell · 2026drum field 24\n        \n          \n          Reading the box00 / 10\n        \n        Any key or a tap to skip\n      \n    ",
+    "status": ""
+  },
+  {
+    "scene": "phone-boot",
+    "shot": "title-waiting",
+    "file": "phone-boot-02-title-waiting.png",
+    "state": "browsing",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "\n      \n        Ethan Lee Barrett\n        No. 60 · PowerShell · 2026drum field 24\n        \n          \n          Reading the box00 / 10\n        \n        Any key or a tap to skip\n      \n    ",
+    "status": ""
+  },
+  {
+    "scene": "phone-boot",
+    "shot": "points-written-simulated",
+    "file": "phone-boot-03-points-written-simulated.png",
+    "state": "browsing",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "\n      \n        Ethan Lee Barrett\n        No. 60 · PowerShell · 2026drum field 24\n        \n          \n          Writing drum field 2406 / 10\n        \n        Any key or a tap to skip\n      \n    ",
+    "status": ""
+  },
+  {
+    "scene": "phone-boot",
+    "shot": "writing",
+    "file": "phone-boot-04-writing.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "60 / 60. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "phone-boot",
+    "shot": "writing-later",
+    "file": "phone-boot-05-writing-later.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "60 / 60. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "phone-boot",
+    "shot": "after",
+    "file": "phone-boot-06-after.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "60 / 60. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "phone-boot",
+    "errors": [
+      "warning: Service Worker registration blocked by Playwright"
+    ]
+  },
+  {
+    "scene": "reduced-motion",
+    "shot": "rest",
+    "file": "reduced-motion-01-rest.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "reduced",
+    "caption": "drum field 24",
+    "status": "60 / 60. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "reduced-motion",
+    "shot": "after-key",
+    "file": "reduced-motion-02-after-key.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "reduced",
+    "caption": "drum field 48",
+    "status": "59 / 60. drum field 48. No description. PowerShell, updated 20 Sept 2026."
+  },
+  {
+    "scene": "reduced-motion",
+    "shot": "open",
+    "file": "reduced-motion-03-open.png",
+    "state": "open",
+    "renderer": "webgl",
+    "motion": "reduced",
+    "caption": "drum field 48",
+    "status": "59 / 60. drum field 48. No description. PowerShell, updated 20 Sept 2026."
+  },
+  {
+    "scene": "reduced-motion",
+    "shot": "index",
+    "file": "reduced-motion-04-index.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "reduced",
+    "caption": "drum field 48",
+    "status": "59 / 60. drum field 48. No description. PowerShell, updated 20 Sept 2026."
+  },
+  {
+    "scene": "reduced-motion",
+    "errors": [
+      "warning: Service Worker registration blocked by Playwright"
+    ]
+  },
+  {
+    "scene": "phone-reduced-motion",
+    "shot": "rest",
+    "file": "phone-reduced-motion-01-rest.png",
+    "state": "settled",
+    "renderer": "webgl",
+    "motion": "reduced",
+    "caption": "drum field 24",
+    "status": "60 / 60. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "phone-reduced-motion",
+    "shot": "open",
+    "file": "phone-reduced-motion-02-open.png",
+    "state": "open",
+    "renderer": "webgl",
+    "motion": "reduced",
+    "caption": "drum field 24",
+    "status": "60 / 60. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "phone-reduced-motion",
+    "errors": [
+      "warning: Service Worker registration blocked by Playwright"
+    ]
+  },
+  {
+    "scene": "flat-renderer",
+    "shot": "rest",
+    "file": "flat-renderer-01-rest.png",
+    "state": "settled",
+    "renderer": "flat",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "60 / 60. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "flat-renderer",
+    "shot": "open",
+    "file": "flat-renderer-02-open.png",
+    "state": "open",
+    "renderer": "flat",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "60 / 60. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "flat-renderer",
+    "shot": "index",
+    "file": "flat-renderer-03-index.png",
+    "state": "settled",
+    "renderer": "flat",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "60 / 60. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "flat-renderer",
+    "errors": [
+      "warning: Service Worker registration blocked by Playwright"
+    ]
+  },
+  {
+    "scene": "phone-flat-renderer",
+    "shot": "rest",
+    "file": "phone-flat-renderer-01-rest.png",
+    "state": "settled",
+    "renderer": "flat",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "60 / 60. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "phone-flat-renderer",
+    "shot": "open",
+    "file": "phone-flat-renderer-02-open.png",
+    "state": "open",
+    "renderer": "flat",
+    "motion": "full",
+    "caption": "drum field 24",
+    "status": "60 / 60. drum field 24. No description. PowerShell, updated 24 Sept 2026."
+  },
+  {
+    "scene": "phone-flat-renderer",
+    "errors": [
+      "warning: Service Worker registration blocked by Playwright"
+    ]
+  },
+  {
+    "scene": "flat-empty",
+    "shot": "rest",
+    "file": "flat-empty-01-rest.png",
+    "state": "settled",
+    "renderer": "flat",
+    "motion": "full",
+    "caption": "In progress",
+    "status": "06 / 06. In progress. Being written. It goes in the box when it is public. Not public yet."
+  },
+  {
+    "scene": "flat-empty",
+    "errors": [
+      "warning: Service Worker registration blocked by Playwright"
+    ]
+  }
+]

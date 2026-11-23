@@ -22,17 +22,23 @@ export function mountFlat(root: HTMLElement, store: Store): void {
   const style = document.createElement("style");
   style.textContent = `
     .flat { position: absolute; inset: 0; display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; }
-    .flat__turn { font: 400 18px/1 var(--sans); min-height: 44px; color: var(--grey); }
-    .flat__turn:hover { color: var(--ink); }
+    .flat__turn { font: 400 18px/1 var(--font-sans); min-height: 44px; color: var(--text-secondary); transition: color var(--motion-fast) var(--ease); }
+    .flat__turn:hover { color: var(--text-primary); }
     .flat__turn--next { grid-column: 3; }
-    /* Below the logo, which holds the top of the stage. */
+    /* Below the title, which holds the top of the stage. */
     .flat__shelf { position: absolute; left: 44px; right: 44px; top: 36%; bottom: 10%; display: flex; align-items: center; justify-content: center; gap: 14px; }
-    .flat__disk { height: 100%; aspect-ratio: 90 / 94; display: block; cursor: pointer; border: 0; padding: 0; background: none; transition: transform 200ms ease; }
+    .flat__disk { height: 100%; aspect-ratio: 90 / 94; display: block; cursor: pointer; border: 0; padding: 0; background: none; transition: transform var(--motion-state) var(--ease); }
     .flat__disk:hover { transform: translateY(-4px); }
     .flat__disk canvas { width: 100%; height: 100%; display: block; }
     .flat__disk--side { height: 54%; opacity: 0.45; }
     .flat__disk--far { height: 40%; opacity: 0.22; }
-    @media (max-width: 1023px) { .flat__shelf { top: 32%; bottom: 4%; gap: 8px; } .flat__disk--far { display: none; } }
+    @media (max-width: 1023px) {
+      .flat__shelf { top: 32%; bottom: 4%; gap: 8px; }
+      .flat__disk--far { display: none; }
+      /* On a phone the disks share the width: the current one largest, its neighbours cropped smaller beside it. */
+      .flat__disk { height: auto; width: 62%; flex: 0 1 auto; }
+      .flat__disk--side { width: 20%; }
+    }
   `;
   root.appendChild(style);
 

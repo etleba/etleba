@@ -1,3 +1,4 @@
+import "@fontsource-variable/inter/wght.css";
 import "./styles.css";
 import { dateLine } from "./catalogue";
 import { type Catalogue, loadCatalogue } from "./data";
@@ -11,7 +12,6 @@ import { Store } from "./state";
 import { mountBooklet } from "./ui/booklet";
 import { mountBoot } from "./ui/boot";
 import { mountCaption } from "./ui/caption";
-import { mountFlicker } from "./ui/flicker";
 import { mountHero } from "./ui/hero";
 import { mountIndex } from "./ui/index-list";
 
@@ -80,7 +80,6 @@ mountIndex($<HTMLElement>("[data-index]"), $<HTMLElement>("[data-index-open]"), 
 mountCaption($<HTMLElement>("[data-caption]"), $<HTMLElement>("[data-turn]"), $<HTMLElement>("[data-status]"), store);
 mountBooklet($<HTMLElement>("[data-booklet]"), store);
 mountHero($<HTMLElement>("[data-hero]"), stageEl, store);
-mountFlicker(store);
 
 const canvas = $<HTMLCanvasElement>("#rack");
 const field = $<HTMLElement>("[data-field]");
@@ -183,7 +182,7 @@ void (async () => {
   await first;
   const current = store.current;
   if (current) {
-    boot.setCurrent(current);
+    boot.setCurrent(current, store.state.current, store.state.visible.length);
     const warm = stage
       ? stage.warm(boot.progress)
       : (async () => {

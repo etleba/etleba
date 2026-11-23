@@ -1,43 +1,26 @@
-import { logoArt } from "../art";
-import { logoAspect } from "../logo";
+import type { Entry } from "../catalogue";
 import type { State, Store } from "../state";
+import { fillTitle, titleBox } from "./title";
 
 /**
- * The title (recipe/direction-v3.md, composition): the project's logo, white, across the top
- * of the stage, the way a band's name sits across the top of a cover. The presented disk
- * floats under it (recipe/direction-v4.md). When the rack settles, the logo opens from its centre line
- * outward, following its own symmetry; when the rack moves it goes. Reduced motion swaps it
+ * The title (recipe/direction-v5.md, composition): the project's name in Inter display with a
+ * micro code line, left on the grid across the top of the stage. The presented disk floats
+ * under it (recipe/direction-v4.md). When the box settles, the title block opens from its centre
+ * line outward, kept from earlier versions; when the box moves it goes. Reduced motion swaps it
  * at once. Decorative: the caption carries the readable name.
  */
 export function mountHero(root: HTMLElement, stage: HTMLElement, store: Store): void {
   const field = stage.querySelector<HTMLElement>("[data-field]")!;
-  const bar = stage.querySelector<HTMLElement>(".bar")!;
   let shown: string | null = null;
   let token = 0;
 
-  async function layout(text: string): Promise<void> {
+  async function layout(entry: Entry, index: number, total: number): Promise<void> {
     const mine = ++token;
-    const cs = getComputedStyle(stage);
-    const margin = parseFloat(cs.getPropertyValue("--margin")) || 24;
-    const w = field.clientWidth;
-    const h = field.clientHeight;
-    const narrow = w < 700;
-    const top = bar.getBoundingClientRect().bottom - field.getBoundingClientRect().top + margin * 0.5;
-    const maxW = Math.min(w - margin * 2, narrow ? w : w * 0.7);
-    const maxH = h * (narrow ? 0.26 : 0.32);
-    const dpr = Math.min(2, devicePixelRatio || 1);
-    const logo = await logoArt(text, Math.min(maxH, maxW / logoAspect(text)) * dpr, "#fff", 0);
+    const box = titleBox(stage);
+    root.style.top = `${(box.top - field.getBoundingClientRect().top).toFixed(1)}px`;
+    root.style.height = `${box.maxH.toFixed(1)}px`;
+    await fillTitle(root, entry, index, total, box);
     if (mine !== token) return;
-    const k = Math.min(maxW / logo.width, maxH / logo.height);
-    const canvas = document.createElement("canvas");
-    canvas.width = logo.width;
-    canvas.height = logo.height;
-    canvas.getContext("2d")!.drawImage(logo, 0, 0);
-    canvas.style.width = `${(logo.width * k).toFixed(1)}px`;
-    canvas.style.height = `${(logo.height * k).toFixed(1)}px`;
-    root.style.top = `${top.toFixed(1)}px`;
-    root.style.height = `${maxH.toFixed(1)}px`;
-    root.replaceChildren(canvas);
   }
 
   async function show(state: State): Promise<void> {
@@ -46,10 +29,10 @@ export function mountHero(root: HTMLElement, stage: HTMLElement, store: Store): 
     if (shown === entry.name && root.dataset.state === "in") return;
     shown = entry.name;
     root.dataset.state = "off";
-    await layout(entry.title);
-    // Still the one to show once its art has arrived?
+    await layout(entry, state.current, state.visible.length);
+    // Still the one to show once its title has been set?
     if (shown !== entry.name || store.state.mode !== "settled") return;
-    // Under the boot screen the logo is placed already open: the boot's own logo lands on it.
+    // Under the boot screen the title is placed already open: the boot's own title lands on it.
     if (document.body.dataset.boot) {
       root.dataset.state = "shown";
       return;
@@ -64,13 +47,13 @@ export function mountHero(root: HTMLElement, stage: HTMLElement, store: Store): 
   }
 
   store.on((state) => {
-    // While a case is open the spread carries the logo.
+    // While a disk is open the sheet carries the title.
     if (state.mode === "settled") void show(state);
     else cut();
   });
 
   new ResizeObserver(() => {
     const entry = store.current;
-    if (entry && shown === entry.name) void layout(entry.title);
+    if (entry && shown === entry.name) void layout(entry, store.state.current, store.state.visible.length);
   }).observe(field);
 }

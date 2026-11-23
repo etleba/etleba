@@ -1,13 +1,22 @@
 import { type Entry, type Order, pad2 } from "../catalogue";
-import { logoArt } from "../art";
+import { figureArt } from "../art";
+import { measuresOf, specFor } from "../figure";
 import type { State, Store } from "../state";
+import { tokens } from "../tokens";
 
 /**
- * The index: the catalogue as a tape trader's list (recipe/direction-v3.md), every project's
- * logo beside its name in Helvetica. It is the same list as the rack and drives the same
- * selection. Opened from the header or with `I`; a modal dialog with focus kept inside; Esc
- * closes and focus returns. Logos are drawn as their rows scroll into view.
+ * The index (recipe/direction-v5.md): the catalogue as a Coded Index, the one Inverse Chapter.
+ * Each row is a number, a small figure, the name, a dotted leader, then the language and the
+ * year. The current row is shown by local inversion and a filled dot, and by aria-selected.
+ * It is the same list as the box and drives the same selection. Opened from the header or with
+ * `I`; a modal dialog with focus kept inside; Esc closes and focus returns. Figures are drawn as
+ * their rows scroll into view.
  */
+/** A row's figure, in CSS pixels. */
+const THUMB = { w: 96, h: 52 };
+/** What a thumbnail was drawn from, so a refreshed catalogue that changes it draws it again. */
+const measureKey = (e: Entry): string => Object.values(measuresOf(e)).join("/");
+
 export function mountIndex(root: HTMLElement, opener: HTMLElement, store: Store): void {
   const list = root.querySelector<HTMLUListElement>("[data-list]")!;
   const find = root.querySelector<HTMLInputElement>("[data-find]")!;
@@ -18,21 +27,27 @@ export function mountIndex(root: HTMLElement, opener: HTMLElement, store: Store)
   const items = new Map<string, HTMLLIElement>();
   let returnFocus: HTMLElement | null = null;
   const sheet = root.querySelector<HTMLElement>(".index__sheet")!;
-  const logos = new IntersectionObserver(
+  const entries = new Map<string, Entry>();
+  const figures = new IntersectionObserver(
     (seen) => {
       const dpr = Math.min(2, devicePixelRatio || 1);
       for (const e of seen) {
         if (!e.isIntersecting) continue;
         const li = e.target as HTMLElement;
-        logos.unobserve(li);
-        const slot = li.querySelector<HTMLElement>(".track__logo")!;
-        void logoArt(li.dataset.title ?? "", 52 * dpr, "#fff", 3).then((logo) => {
+        figures.unobserve(li);
+        const entry = entries.get(li.dataset.name ?? "");
+        if (!entry) continue;
+        const slot = li.querySelector<HTMLElement>(".track__figure")!;
+        li.dataset.drawn = measureKey(entry);
+        // The rows nearest the current one draw first (priorities 1 to 2, ahead of the box's labels).
+        const at = store.state.visible.findIndex((v) => v.name === entry.name);
+        const near = at < 0 ? 1 : Math.min(1, Math.abs(at - Math.max(0, store.state.current)) / 100);
+        // Off-white on the deep field; the selected row's paper inverts it (see styles.css).
+        void figureArt(specFor(entry, THUMB.w * dpr, THUMB.h * dpr, tokens().inverse, { unit: dpr }), 1 + near).then((pic) => {
           const c = document.createElement("canvas");
-          c.width = logo.width;
-          c.height = logo.height;
-          c.getContext("2d")!.drawImage(logo, 0, 0);
-          c.style.height = "52px";
-          c.style.width = `${(logo.width / logo.height) * 52}px`;
+          c.width = pic.width;
+          c.height = pic.height;
+          c.getContext("2d")!.drawImage(pic, 0, 0);
           slot.replaceChildren(c);
         });
       }
@@ -54,14 +69,18 @@ export function mountIndex(root: HTMLElement, opener: HTMLElement, store: Store)
         li.className = "track";
         li.setAttribute("role", "option");
         li.dataset.name = entry.name;
-        li.innerHTML = `<span class="track__no"></span><span class="track__logo" aria-hidden="true"></span><span class="track__name"></span><span class="track__meta"><span class="track__code"></span><span class="track__year"></span></span>`;
-        li.dataset.title = entry.title;
-        logos.observe(li);
+        li.innerHTML = `<span class="track__no"><span class="track__dot" aria-hidden="true"></span><span class="track__num"></span></span><span class="track__figure" aria-hidden="true"></span><span class="track__label"><span class="track__name"></span><span class="track__leader" aria-hidden="true"></span></span><span class="track__meta"><span class="track__code"></span><span class="track__year"></span></span>`;
+        figures.observe(li);
         li.addEventListener("click", () => choose(entry));
         items.set(entry.name, li);
       }
+      entries.set(entry.name, entry);
+      if (li.dataset.drawn && li.dataset.drawn !== measureKey(entry)) {
+        delete li.dataset.drawn;
+        figures.observe(li);
+      }
       li.id = `track-${entry.no}`;
-      li.querySelector(".track__no")!.textContent = pad2(i + 1, n);
+      li.querySelector(".track__num")!.textContent = pad2(i + 1, n);
       li.querySelector(".track__name")!.textContent = entry.title;
       li.querySelector(".track__code")!.textContent = entry.language ?? "—";
       li.querySelector(".track__year")!.textContent = entry.year;
@@ -72,8 +91,9 @@ export function mountIndex(root: HTMLElement, opener: HTMLElement, store: Store)
     for (const [name, li] of items) {
       if (!names.has(name)) {
         li.remove();
-        logos.unobserve(li);
+        figures.unobserve(li);
         items.delete(name);
+        entries.delete(name);
       }
     }
     list.replaceChildren(frag);
@@ -86,7 +106,8 @@ export function mountIndex(root: HTMLElement, opener: HTMLElement, store: Store)
     else list.removeAttribute("aria-activedescendant");
   }
 
-  function reveal(state: State): void {
+  /** `instant` is for opening: the list is placed on the current row at once, so only the rows in view draw their figures. */
+  function reveal(state: State, instant = false): void {
     const current = state.current >= 0 ? state.visible[state.current] : null;
     if (!current || root.hidden) return;
     const li = items.get(current.name);
@@ -95,7 +116,7 @@ export function mountIndex(root: HTMLElement, opener: HTMLElement, store: Store)
     const r = li.getBoundingClientRect();
     const head = root.querySelector<HTMLElement>(".index__head")!.getBoundingClientRect();
     if (r.top < head.bottom || r.bottom > innerHeight) {
-      sheet.scrollTo({ top: sheet.scrollTop + r.top - innerHeight / 2 + r.height / 2, behavior: state.motion === "full" ? "smooth" : "auto" });
+      sheet.scrollTo({ top: sheet.scrollTop + r.top - innerHeight / 2 + r.height / 2, behavior: state.motion === "full" && !instant ? "smooth" : "auto" });
     }
   }
 
@@ -120,7 +141,7 @@ export function mountIndex(root: HTMLElement, opener: HTMLElement, store: Store)
     opener.setAttribute("aria-expanded", "true");
     render(store.state);
     requestAnimationFrame(() => {
-      reveal(store.state);
+      reveal(store.state, true);
       find.focus({ preventScroll: true });
     });
   }

@@ -2,3 +2,4 @@ node_modules
 dist
 recipe/evidence/review/*.png
 recipe/evidence/wedges/*.png
+recipe/evidence/review-v5/*.png

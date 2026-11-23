@@ -1,17 +1,39 @@
-import { dateLine, position } from "../catalogue";
-import { logoArt } from "../art";
-import { logoAspect } from "../logo";
+import { dateLine, pad2, position, type Entry } from "../catalogue";
+import { figureArt } from "../art";
+import { type FigureSpec, shapeOf, specFor } from "../figure";
 import { readmeHtml } from "../readme";
 import type { State, Store } from "../state";
+import { tokens } from "../tokens";
 
 /**
- * The sheet (recipe/direction-v4.md, drive): the open disk's contents, a photocopied white
- * sheet with a drive down its left edge. The disk goes into the drive's slot; the light flickers
- * while it reads; the README comes up line by line once both the disk is in and the text has
- * arrived. The logo in black heads it, the readable name in Helvetica under it, then a row of
- * facts, the description and the README. Focus moves to Close and returns on close. Without
- * WebGL, on narrow screens and under reduced motion there is no disk to wait for.
+ * The sheet (recipe/direction-v4.md, drive; recipe/direction-v5.md, figures): the open disk's
+ * contents, a paper sheet with a drive down its left edge. The disk goes into the drive's slot;
+ * the light blinks while it reads; the README comes up block by block once both the disk is in
+ * and the text has arrived. The disk's figure heads the sheet in a hard-cropped plate, with a
+ * caption that says what it encodes; the name in Inter sits under it, then a row of facts, the
+ * description and the README. Focus moves to Close and returns on close. Without WebGL, on
+ * narrow screens and under reduced motion there is no disk to wait for.
  */
+
+/** What the figure shows and which fact sets each part of it, in a sentence. */
+export function figureCaption(entry: Entry, index: number, total: number, spec: FigureSpec): string {
+  const fig = `Fig. ${pad2(index + 1, total)}.`;
+  if (entry.placeholder) return `${fig} Unresolved field: nothing has accumulated yet.`;
+  const s = shapeOf(spec);
+  const pct = Math.round(s.completion * 100);
+  const stars = `${entry.stargazers_count} ${entry.stargazers_count === 1 ? "star" : "stars"}`;
+  const started = `started ${entry.born}`;
+  const pushed = `last push ${dateLine(entry.pushed_at || entry.created_at)}`;
+  switch (s.family) {
+    case "radial":
+      return `${fig} ${s.name}: ${s.points} points (${stars}), ${s.rings} rings (${started}), the circle ${pct}% swept (${pushed}).`;
+    case "curve":
+      return `${fig} ${s.name}: ${s.points} points (${stars}), ${s.rings} tiers (${started}), drawn to ${pct}% of its width (${pushed}).`;
+    default:
+      return `${fig} ${s.name}: depth ${s.depth} (${stars}), ${s.rings} tiers (${started}), ${pct}% of the tips set (${pushed}).`;
+  }
+}
+
 export function mountBooklet(root: HTMLElement, store: Store): void {
   const sheet = root.querySelector<HTMLElement>("[data-booklet-sheet]")!;
   const no = root.querySelector<HTMLElement>("[data-booklet-no]")!;
@@ -21,7 +43,8 @@ export function mountBooklet(root: HTMLElement, store: Store): void {
   const link = root.querySelector<HTMLAnchorElement>("[data-booklet-link]")!;
   const close = root.querySelector<HTMLButtonElement>("[data-booklet-close]")!;
   const body = root.querySelector<HTMLElement>("[data-booklet-body]")!;
-  const logoSlot = root.querySelector<HTMLElement>("[data-booklet-logo]")!;
+  const plate = root.querySelector<HTMLElement>("[data-booklet-figure]")!;
+  const caption = root.querySelector<HTMLElement>("[data-booklet-caption]")!;
   let returnFocus: HTMLElement | null = null;
   let token = 0;
   let leaving = 0;
@@ -69,13 +92,13 @@ export function mountBooklet(root: HTMLElement, store: Store): void {
       [html] = await Promise.all([readmeHtml(entry), inserted(state)]);
     } catch {
       if (mine !== token) return;
-      body.innerHTML = `<p class="spread__state spread__state--error">The README could not be loaded. <a href="${entry.html_url}#readme" target="_blank" rel="noopener">Read it on GitHub</a>.</p>`;
+      body.innerHTML = `<p class="spread__state spread__state--error"><span aria-hidden="true">× </span>The README could not be loaded. <a href="${entry.html_url}#readme" target="_blank" rel="noopener">Read it on GitHub</a>.</p>`;
       store.setReadme(entry.name, "error");
       return;
     }
     if (mine !== token) return; // a newer open superseded this one
     if (html === null) {
-      body.innerHTML = `<p class="spread__state spread__state--error">This disk has no README on GitHub yet. <a href="${entry.html_url}" target="_blank" rel="noopener">Open the repository</a> to see its files.</p>`;
+      body.innerHTML = `<p class="spread__state spread__state--error"><span aria-hidden="true">× </span>This disk has no README on GitHub yet. <a href="${entry.html_url}" target="_blank" rel="noopener">Open the repository</a> to see its files.</p>`;
       store.setReadme(entry.name, "missing");
       return;
     }
@@ -112,22 +135,23 @@ export function mountBooklet(root: HTMLElement, store: Store): void {
     link.closest("p")!.hidden = Boolean(entry.placeholder);
     if (root.hidden) returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     root.hidden = false;
-    // The logo is sized to the sheet, so it is drawn once the sheet is showing.
+    // The figure is sized to the plate, so it is drawn once the sheet is showing.
     const dpr = Math.min(2, devicePixelRatio || 1);
-    const boxW = Math.max(200, logoSlot.getBoundingClientRect().width);
-    const maxH = Math.min(220, innerHeight * 0.24);
+    const rect = plate.getBoundingClientRect();
+    const boxW = Math.max(200, rect.width);
+    const boxH = Math.max(96, rect.height);
     const forName = entry.name;
-    logoSlot.replaceChildren();
-    void logoArt(entry.title, Math.min(maxH, boxW / logoAspect(entry.title)) * dpr, "#000", 0).then((logo) => {
+    const spec = specFor(entry, boxW * dpr, boxH * dpr, tokens().ink, { unit: dpr });
+    plate.replaceChildren();
+    caption.textContent = figureCaption(entry, state.current, state.visible.length, spec);
+    void figureArt(spec, 0).then((pic) => {
       if (store.current?.name !== forName) return;
-      const k = Math.min(boxW / logo.width, maxH / logo.height);
       const c = document.createElement("canvas");
-      c.width = logo.width;
-      c.height = logo.height;
-      c.getContext("2d")!.drawImage(logo, 0, 0);
-      c.style.width = `${(logo.width * k).toFixed(1)}px`;
-      c.style.height = `${(logo.height * k).toFixed(1)}px`;
-      logoSlot.replaceChildren(c);
+      c.width = pic.width;
+      c.height = pic.height;
+      c.setAttribute("aria-hidden", "true");
+      c.getContext("2d")!.drawImage(pic, 0, 0);
+      plate.replaceChildren(c);
     });
     delete body.dataset.read;
     root.dataset.phase = "in";

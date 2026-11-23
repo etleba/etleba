@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <title>Fog check, direction v5</title>
+    <style>
+      :root { --surface-page: #f2f1ed; --text-primary: #111111; --surface-emphasis: #1a1a1a; --text-secondary: #555555; --text-inverse: #f2f1ed; --text-inverse-secondary: #b4b3ad; }
+      body { margin: 0; background: var(--surface-page); font: 12px Arial, Helvetica, sans-serif; }
+    </style>
+  </head>
+  <body>
+    <canvas id="c" width="64" height="64"></canvas>
+    <script type="module">
+      // A black plane well beyond the fog's far distance is drawn entirely in the fog colour. With the
+      // stage's own renderer settings (neutral tone mapping, sRGB output), that pixel must equal the page
+      // colour. The fog is the --surface-page token as it stands (src/stage.ts), with no correction:
+      // this three.js applies fog after tone mapping.
+      import * as THREE from "three";
+      import { tokens } from "/src/tokens.ts";
+
+      function sample(fogColor) {
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById("c"), antialias: false, alpha: false, preserveDrawingBuffer: true });
+        renderer.setSize(64, 64, false);
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        renderer.toneMapping = THREE.NeutralToneMapping;
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.Fog(fogColor, 1, 2);
+        const camera = new THREE.PerspectiveCamera(30, 1, 0.5, 50);
+        camera.position.set(0, 0, 10);
+        const plane = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshBasicMaterial({ color: 0x000000 }));
+        scene.add(plane);
+        renderer.render(scene, camera);
+        const gl = renderer.getContext();
+        const px = new Uint8Array(4);
+        gl.readPixels(32, 32, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+        renderer.dispose();
+        return [px[0], px[1], px[2]];
+      }
+
+      const t = tokens();
+      const page = new THREE.Color(t.page);
+      const wanted = [0xf2, 0xf1, 0xed];
+      window.__fog = { page: t.page, wanted, fogged: sample(page) };
+      window.__ready = true;
+    </script>
+  </body>
+</html>
