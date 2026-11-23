@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.tools/
+site.pre-v5/
+.claude/settings.local.json
+.agents/
+/DESIGN.md
